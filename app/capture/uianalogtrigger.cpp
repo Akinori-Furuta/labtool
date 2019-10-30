@@ -19,6 +19,8 @@
 #include <QPainter>
 #include <QPen>
 
+#include "common/configuration.h"
+
 #define TRIGGER_STATE_WIDTH  (15)
 #define TRIGGER_STATE_HEIGHT (15)
 #define TRIGGER_TO_SLIDER_DIST (3)
@@ -148,6 +150,7 @@ void UiAnalogTrigger::paintEvent(QPaintEvent *event)
     painter.drawLine(1, TRIGGER_STATE_HEIGHT-1, TRIGGER_STATE_WIDTH-2, TRIGGER_STATE_HEIGHT-1);
     painter.drawLine(0, 1, 0, TRIGGER_STATE_HEIGHT-2);
     painter.fillRect(1, 1, TRIGGER_STATE_WIDTH-2, TRIGGER_STATE_HEIGHT-2, QColor(255,255,255));
+    drawTriggerLevel(mLevel->value());
     painter.restore();
 
     QPen pen = painter.pen();
@@ -219,13 +222,23 @@ void UiAnalogTrigger::resizeEvent(QResizeEvent* event)
 */
 void UiAnalogTrigger::setTriggerLevel(int level)
 {
+    drawTriggerLevel(level);
+    emit levelChanged();
+}
+
+/*!
+    Set the trigger level to \a level.
+*/
+void UiAnalogTrigger::drawTriggerLevel(int level)
+{
     double l = (double)level/mScale;
+    QPalette palette = mLevelLbl->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mLevelLbl->setPalette(palette);
     mLevelLbl->setText(QString("%1").arg(l, 4, 'f', 2));
     mLevelLbl->hide();
     mLevelLbl->show();
     doLayout();
-
-    emit levelChanged();
 }
 
 /*!

@@ -47,6 +47,7 @@ protected:
 
 private slots:
     void setTriggerLevel(int level);
+    void drawTriggerLevel(int level);
 
 private:
 
