@@ -152,6 +152,31 @@ UiAnalogSignalPrivate::~UiAnalogSignalPrivate()
 }
 
 /*!
+    DC and AC coupling selector button style.
+*/
+static const char DcAcButtonStyleSheet[] =
+"   ::indicator {"
+"   width: 12px;"
+"   height: 12px;"
+"   border-width: 2px;"
+"   border-radius: 8px;"
+"   border-style: solid;"
+"   background-color: #202020;"
+"}"
+"   ::indicator:unchecked {"
+"   border-width: 2px;"
+"   border-color: #205020;"
+"   border-style: outset;"
+"   background-color: #809070;"
+"}"
+"   ::indicator:checked {"
+"   border-width: 2px;"
+"   border-color: #308020;"
+"   border-style: inset;"
+"   background-color: #10ff00;"
+"}";
+
+/*!
     Initialize and setup UI elements related to the analog signal \a signal.
     The parameter \a parent is used as parent for the UI elements.
 */
@@ -220,6 +245,7 @@ void UiAnalogSignalPrivate::setup(AnalogSignal* signal, UiAnalogSignal* parent)
 
     // Deallocation: Destructor
     mDcBtn = new QRadioButton("DC", parent);
+    mDcBtn->setStyleSheet(DcAcButtonStyleSheet);
     mDcBtn->setToolTip(parent->tr("DC coupling"));
     if (mSignal->coupling() == AnalogSignal::CouplingDc) {
         mDcBtn->setChecked(true);
@@ -228,6 +254,7 @@ void UiAnalogSignalPrivate::setup(AnalogSignal* signal, UiAnalogSignal* parent)
 
     // Deallocation: Destructor
     mAcBtn = new QRadioButton("AC", parent);
+    mAcBtn->setStyleSheet(DcAcButtonStyleSheet);
     mAcBtn->setToolTip(parent->tr("AC coupling"));
     if (mSignal->coupling() == AnalogSignal::CouplingAc) {
         mAcBtn->setChecked(true);
@@ -319,8 +346,8 @@ void UiAnalogSignalPrivate::setGeometry(int x, int y, int w, int h)
     // signal color is painted below mVPerDivBox (see paintInfo)
     wy = mVPerDivBox->pos().y()+mVPerDivBox->height()+3+5+5;
 
-    mDcBtn->move(w/2-mDcBtn->width(), wy);
-    mAcBtn->move(w/2, wy);
+    mDcBtn->move(w/2-mDcBtn->width()-2, wy);
+    mAcBtn->move(w/2+2, wy);
 
     if (mGndPos == -1) {
         mGndPos = y + h/2;
