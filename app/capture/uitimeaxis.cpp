@@ -21,6 +21,7 @@
 #include <qmath.h>
 
 #include "common/stringutil.h"
+#include "common/configuration.h"
 #include "device/devicemanager.h"
 
 /*!
@@ -258,6 +259,9 @@ void UiTimeAxis::paintEvent(QPaintEvent *event)
             / (MajorStepPixelWidth/NumberOfMinorSteps) + 1;
 
     painter.save();
+    QPen pen = painter.pen();
+    pen.setColor(Configuration::instance().textColor());
+    painter.setPen(pen);
     painter.translate(infoWidth(), 0);
 
     for (int i = 0; i < numMinorSteps; i++) {
