@@ -62,6 +62,8 @@ public:
     QColor analogOutCableColor(int id);
 
     QColor outsidePlotColor();
+    QString closeIcon();
+    QString configureIcon();
 
     void loadLightScheme();
     void loadDarkScheme();
@@ -93,6 +95,9 @@ private:
     QColor mDigitalCableColors[MaxDigitalColors];
     QColor mAnalogInCableColors[MaxAnalogColors];
     QColor mAnalogOutCableColors[MaxAnalogColors];
+
+    QString mCloseIcon;
+    QString mConfigureIcon;
 };
 
 #endif // CONFIGURATION_H

@@ -337,6 +337,14 @@ QColor Configuration::outsidePlotColor()
                 QColor(mPlotBackgroundColor).darker(105);
 }
 
+QString Configuration::closeIcon()
+{	return mCloseIcon;
+}
+
+QString Configuration::configureIcon()
+{	return mConfigureIcon;
+}
+
 /*!
     Load the color scheme called "Light".
 */
@@ -368,6 +376,9 @@ void Configuration::loadLightScheme()
     mCursorColors[4] = Qt::darkGreen;
 
     mGridColor = Qt::gray;
+
+    mCloseIcon = ":/resources/8_close.png";
+    mConfigureIcon = ":/resources/8_configure.png";
 }
 
 /*!
@@ -401,4 +412,7 @@ void Configuration::loadDarkScheme()
     mCursorColors[4] = Qt::darkGreen;
 
     mGridColor = Qt::gray;
+
+    mCloseIcon = ":/resources/8_close_dark.png";
+    mConfigureIcon = ":/resources/8_configure_dark.png";
 }
