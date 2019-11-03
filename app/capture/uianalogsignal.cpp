@@ -186,6 +186,9 @@ void UiAnalogSignalPrivate::setup(AnalogSignal* signal, UiAnalogSignal* parent)
 
     // Deallocation: Destructor
     mColorLbl = new QLabel(parent);
+    QPalette palette = mColorLbl->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mColorLbl->setPalette(palette);
     mColorLbl->setText("    ");
     QString color = Configuration::instance().analogInCableColor(signal->id()).name();
     mColorLbl->setStyleSheet(QString("QLabel { background-color : %1; }").arg(color));
@@ -193,11 +196,17 @@ void UiAnalogSignalPrivate::setup(AnalogSignal* signal, UiAnalogSignal* parent)
 
     // Deallocation: Destructor
     mIdLbl = new QLabel(parent);
+    palette = mIdLbl->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mIdLbl->setPalette(palette);
     mIdLbl->setText(QString("A%1").arg(signal->id()));
     mIdLbl->show();
 
     // Deallocation: Destructor
     mName = new QLabel(parent);
+    palette = mName->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mName->setPalette(palette);
     mName->setText(signal->name());
     mName->show();
 
@@ -205,6 +214,9 @@ void UiAnalogSignalPrivate::setup(AnalogSignal* signal, UiAnalogSignal* parent)
 
     // Deallocation: Destructor
     mEditName = new QLineEdit(parent);
+    palette = mEditName->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mEditName->setPalette(palette);
     mEditName->hide();
     parent->connect(mEditName, SIGNAL(editingFinished()),
                     parent, SLOT(nameEdited()));
@@ -220,6 +232,9 @@ void UiAnalogSignalPrivate::setup(AnalogSignal* signal, UiAnalogSignal* parent)
 
     // Deallocation: Destructor
     mVPerDivBox = new UiListSpinBox(parent);
+    palette = mVPerDivBox->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mVPerDivBox->setPalette(palette);
     mVPerDivBox->setSuffix(" V/div");
     CaptureDevice* device = DeviceManager::instance().activeDevice()
             ->captureDevice();
@@ -245,6 +260,10 @@ void UiAnalogSignalPrivate::setup(AnalogSignal* signal, UiAnalogSignal* parent)
 
     // Deallocation: Destructor
     mDcBtn = new QRadioButton("DC", parent);
+    palette = mDcBtn->palette();
+    palette.setColor(QPalette::Foreground, Configuration::instance().textColor());
+    palette.setColor(QPalette::Background, Qt::blue);
+    mDcBtn->setPalette(palette);
     mDcBtn->setStyleSheet(DcAcButtonStyleSheet);
     mDcBtn->setToolTip(parent->tr("DC coupling"));
     if (mSignal->coupling() == AnalogSignal::CouplingDc) {
@@ -254,6 +273,9 @@ void UiAnalogSignalPrivate::setup(AnalogSignal* signal, UiAnalogSignal* parent)
 
     // Deallocation: Destructor
     mAcBtn = new QRadioButton("AC", parent);
+    palette = mAcBtn->palette();
+    palette.setColor(QPalette::Foreground, Configuration::instance().textColor());
+    mAcBtn->setPalette(palette);
     mAcBtn->setStyleSheet(DcAcButtonStyleSheet);
     mAcBtn->setToolTip(parent->tr("AC coupling"));
     if (mSignal->coupling() == AnalogSignal::CouplingAc) {
@@ -865,6 +887,9 @@ void UiAnalogSignal::disableSignal(int idx)
 */
 void UiAnalogSignal::setName(QString &name, UiAnalogSignalPrivate* signal)
 {
+    QPalette palette = signal->mName->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    signal->mName->setPalette(palette);
     signal->mName->setText(name);
     signal->mSignal->setName(name);
 

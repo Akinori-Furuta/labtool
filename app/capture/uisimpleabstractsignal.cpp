@@ -58,14 +58,24 @@ UiSimpleAbstractSignal::UiSimpleAbstractSignal(QWidget *parent) :
     // Deallocation: "Qt Object trees" (See UiMainWindow)
     mIdLbl = new QLabel(this);
 
+    QPalette palette = mIdLbl->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mIdLbl->setPalette(palette);
+
     // Deallocation: "Qt Object trees" (See UiMainWindow)
     mNameLbl = new QLabel(this);
+    palette = mNameLbl->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mNameLbl->setPalette(palette);
 
     // mEditName is used when changing the name of a signal
     // it will be displayed when a user clicks on the signal name
 
     // Deallocation: "Qt Object trees" (See UiMainWindow)
     mEditName = new QLineEdit(this);
+    palette = mEditName->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mEditName->setPalette(palette);
     mEditName->hide();
     connect(mEditName, SIGNAL(editingFinished()), this,
             SLOT(nameEdited()));
@@ -78,7 +88,9 @@ UiSimpleAbstractSignal::UiSimpleAbstractSignal(QWidget *parent) :
 */
 void UiSimpleAbstractSignal::setSignalName(QString name)
 {
-
+    QPalette palette = mNameLbl->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mNameLbl->setPalette(palette);
     mNameLbl->setText(name);
 
     mEditName->hide();
