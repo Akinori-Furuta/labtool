@@ -405,11 +405,11 @@ void Configuration::loadDarkScheme()
         mAnalogGroundColors[i] = Qt::green;
     }
 
-    mCursorColors[0] = Qt::red;
-    mCursorColors[1] = Qt::blue;
-    mCursorColors[2] = QColor(0, 255, 255);
-    mCursorColors[3] = Qt::green;
-    mCursorColors[4] = Qt::darkGreen;
+    mCursorColors[0] = QColor(255,  90,  90); /* red on black. */
+    mCursorColors[1] = QColor( 80, 140, 255); /* blue on black. */
+    mCursorColors[2] = QColor(180,  80, 255); /* dark blue on black. */
+    mCursorColors[3] = QColor(180, 255,  40); /* green on black. */
+    mCursorColors[4] = QColor( 40, 255, 180); /* dark green on black. */
 
     mGridColor = Qt::gray;
 
