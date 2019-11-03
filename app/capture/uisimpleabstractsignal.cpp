@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 #include "uisimpleabstractsignal.h"
-
+#include "common/configuration.h"
 #include <QDebug>
 
 /*!
@@ -38,14 +38,14 @@ UiSimpleAbstractSignal::UiSimpleAbstractSignal(QWidget *parent) :
 
     // Deallocation: "Qt Object trees" (See UiMainWindow)
     mDisableBtn = new QPushButton(this);
-    mDisableBtn->setIcon(QIcon(":/resources/8_close.png"));
+    mDisableBtn->setIcon(QIcon(Configuration::instance().closeIcon()));
     mDisableBtn->setFlat(true);
     mDisableBtn->resize(12, 12); //slightly bigger than the 8x8 icon
     connect(mDisableBtn, SIGNAL(clicked()), this, SLOT(closeSignal()));
 
     // Deallocation: "Qt Object trees" (See UiMainWindow)
     mConfigureBtn = new QPushButton(this);
-    mConfigureBtn->setIcon(QIcon(":resources/8_configure.png"));
+    mConfigureBtn->setIcon(QIcon(Configuration::instance().configureIcon()));
     mConfigureBtn->setFlat(true);
     mConfigureBtn->resize(12, 12);
     connect(mConfigureBtn, SIGNAL(clicked()), this, SLOT(configure()));

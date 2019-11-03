@@ -211,7 +211,7 @@ void UiAnalogSignalPrivate::setup(AnalogSignal* signal, UiAnalogSignal* parent)
 
     // Deallocation: Destructor
     mDisableBtn = new QPushButton(parent);
-    mDisableBtn->setIcon(QIcon(":/resources/8_close.png"));
+    mDisableBtn->setIcon(QIcon(QIcon(Configuration::instance().closeIcon())));
     mDisableBtn->setFlat(true);
     mDisableBtn->resize(12, 12); //slightly bigger than the 8x8 icon
     mDisableBtn->show();
