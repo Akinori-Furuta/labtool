@@ -95,6 +95,7 @@ public:
     int minimumHeight();
 
     void paintInfo(QPainter* painter, QColor color);
+    void paintEventUpdate();
 };
 
 /*!
@@ -262,7 +263,6 @@ void UiAnalogSignalPrivate::setup(AnalogSignal* signal, UiAnalogSignal* parent)
     mDcBtn = new QRadioButton("DC", parent);
     palette = mDcBtn->palette();
     palette.setColor(QPalette::Foreground, Configuration::instance().textColor());
-    palette.setColor(QPalette::Background, Qt::blue);
     mDcBtn->setPalette(palette);
     mDcBtn->setStyleSheet(DcAcButtonStyleSheet);
     mDcBtn->setToolTip(parent->tr("DC coupling"));
@@ -390,6 +390,25 @@ void UiAnalogSignalPrivate::paintInfo(QPainter* painter, QColor color)
     int y = mVPerDivBox->pos().y()+mVPerDivBox->height()+3;
     QRect rect(geometry.width()/2-w/2, y, w, 5);
     painter->drawRoundRect(rect, 10, 10);
+}
+
+void UiAnalogSignalPrivate::paintEventUpdate()
+{
+    QPalette palette = mIdLbl->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mIdLbl->setPalette(palette);
+    mName->setPalette(palette);
+    palette = mEditName->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mEditName->setPalette(palette);
+    palette = mVPerDivBox->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mVPerDivBox->setPalette(palette);
+    palette = mDcBtn->palette();
+    palette.setColor(QPalette::Foreground, Configuration::instance().textColor());
+    mDcBtn->setPalette(palette);
+    mAcBtn->setPalette(palette);
+    mDisableBtn->setIcon(QIcon(QIcon(Configuration::instance().closeIcon())));
 }
 
 /*!
@@ -573,7 +592,6 @@ void UiAnalogSignal::paintEvent(QPaintEvent *event)
 #if QT_VERSION >= 0x050000
     painter.setRenderHint(QPainter::Qt4CompatiblePainting);
 #endif
-
 
     // -----------------
     // draw background
@@ -1102,6 +1120,8 @@ void UiAnalogSignal::paintSignals(QPainter* painter)
     for (int i = 0; i < mSignals.size(); i++) {
         UiAnalogSignalPrivate* p = mSignals.at(i);
         int id = p->mSignal->id();
+
+        p->paintEventUpdate();
 
         QPen pen = painter->pen();
 
