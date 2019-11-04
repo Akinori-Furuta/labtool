@@ -77,7 +77,7 @@ UiSpiAnalyzer::UiSpiAnalyzer(QWidget *parent) :
     mEnableLbl->setAlignment(Qt::AlignRight);
 
     QPalette palette= mSckLbl->palette();
-    palette.setColor(QPalette::Text, Qt::gray);
+    palette.setColor(QPalette::Text, QColor(0x10,  0xe0,  0x00) /* Green LED */);
     mSckLbl->setPalette(palette);
     mMosiLbl->setPalette(palette);
     mMisoLbl->setPalette(palette);
@@ -546,6 +546,11 @@ void UiSpiAnalyzer::paintEvent(QPaintEvent *event)
     QPainter painter(this);
 
     int textMargin = 3;
+
+    QPalette palette = mIdLbl->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mIdLbl->setPalette(palette);
+    mNameLbl->setPalette(palette); /* Use same Id label palette. */
 
     // -----------------
     // draw background

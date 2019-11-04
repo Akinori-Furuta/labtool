@@ -65,7 +65,7 @@ UiUartAnalyzer::UiUartAnalyzer(QWidget *parent) :
     mSignalLbl = new QLabel(this);
 
     QPalette palette= mSignalLbl->palette();
-    palette.setColor(QPalette::Text, Qt::gray);
+    palette.setColor(QPalette::Text, QColor(0x10,  0xe0,  0x00) /* Green LED */);
     mSignalLbl->setPalette(palette);
 
     setFixedHeight(50);
@@ -535,6 +535,11 @@ void UiUartAnalyzer::paintEvent(QPaintEvent *event)
 
     QString shortTxt;
     QString longTxt;
+
+    QPalette palette = mIdLbl->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mIdLbl->setPalette(palette);
+    mNameLbl->setPalette(palette); /* Use same Id label palette. */
 
     QPen pen = painter.pen();
     pen.setColor(Configuration::instance().analyzerColor());
