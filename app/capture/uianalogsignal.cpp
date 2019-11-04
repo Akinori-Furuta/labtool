@@ -190,9 +190,15 @@ void UiAnalogSignalPrivate::setup(AnalogSignal* signal, UiAnalogSignal* parent)
     QPalette palette = mColorLbl->palette();
     palette.setColor(QPalette::Text, Configuration::instance().textColor());
     mColorLbl->setPalette(palette);
-    mColorLbl->setText("    ");
+    mColorLbl->setText("  ");
     QString color = Configuration::instance().analogInCableColor(signal->id()).name();
-    mColorLbl->setStyleSheet(QString("QLabel { background-color : %1; }").arg(color));
+    mColorLbl->setStyleSheet(QString(
+        "QLabel { background-color : %1; "
+        "border-width: 1px; "
+        "border-style: solid; "
+        "border-radius: 2px; "
+        "border-color: gray; }"
+    ).arg(color));
     mColorLbl->show();
 
     // Deallocation: Destructor

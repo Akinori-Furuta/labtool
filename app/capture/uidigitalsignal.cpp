@@ -58,9 +58,15 @@ UiDigitalSignal::UiDigitalSignal(DigitalSignal* s, QWidget *parent) :
     mIdLbl->setText(QString("D%1").arg(s->id()));
     mNameLbl->setText(s->name());
 
-    mColorLbl->setText("    ");
+    mColorLbl->setText("  ");
     QString color = Configuration::instance().digitalCableColor(s->id()).name();
-    mColorLbl->setStyleSheet(QString("QLabel { background-color : %1; }").arg(color));
+    mColorLbl->setStyleSheet(QString(
+        "QLabel { background-color : %1; "
+        "border-width: 1px; "
+        "border-style: solid; "
+        "border-radius: 2px; "
+        "border-color: gray; }"
+    ).arg(color));
 
     // Deallocation: "Qt Object trees" (See UiMainWindow)
     mTrigger = new UiDigitalTrigger(this);
