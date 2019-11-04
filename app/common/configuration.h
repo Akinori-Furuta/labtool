@@ -52,6 +52,7 @@ public:
     void   setCursorColor(int id, QColor &c);
     QColor gridColor();
     void   setGridColor(QColor &c);
+    QColor gridColorHighLight();
     QColor analyzerColor();
     void   setAnalyzerColor(QColor &c);
     void   setDigitalCableColor(int id, QColor &c);
@@ -91,6 +92,7 @@ private:
     QColor mAnalogGroundColors[MaxAnalogColors];
     QColor mCursorColors[MaxCursorColors];
     QColor mGridColor;
+    QColor mGridColorHighLight;
     QColor mAnalyzerColor;
     QColor mDigitalCableColors[MaxDigitalColors];
     QColor mAnalogInCableColors[MaxAnalogColors];

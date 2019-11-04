@@ -243,6 +243,14 @@ void Configuration::setGridColor(QColor &c)
 }
 
 /*!
+    Returns the color for grid.
+*/
+QColor Configuration::gridColorHighLight()
+{
+    return mGridColorHighLight;
+}
+
+/*!
     Returns the color used when painting analyzer signals.
 */
 QColor Configuration::analyzerColor()
@@ -376,6 +384,7 @@ void Configuration::loadLightScheme()
     mCursorColors[4] = Qt::darkGreen;
 
     mGridColor = Qt::gray;
+    mGridColorHighLight = QColor( 30, 30, 30);
 
     mCloseIcon = ":/resources/8_close.png";
     mConfigureIcon = ":/resources/8_configure.png";
@@ -412,6 +421,7 @@ void Configuration::loadDarkScheme()
     mCursorColors[4] = QColor( 40, 255, 180); /* dark green on black. */
 
     mGridColor = Qt::gray;
+    mGridColorHighLight = QColor(220, 220, 220);
 
     mCloseIcon = ":/resources/8_close_dark.png";
     mConfigureIcon = ":/resources/8_configure_dark.png";

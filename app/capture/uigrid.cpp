@@ -14,6 +14,7 @@
  *  limitations under the License.
  */
 #include "uigrid.h"
+#include "common/configuration.h"
 
 #include <QPainter>
 #include <QDebug>
@@ -56,10 +57,10 @@ void UiGrid::paintEvent(QPaintEvent *event)
 
         QPen pen = painter.pen();
         if (i == UiTimeAxis::ReferenceMajorStep) {
-            pen.setColor(Qt::black);
+            pen.setColor(Configuration::instance().gridColorHighLight());
             pen.setStyle(Qt::DashLine);
         } else {
-            pen.setColor(Qt::gray);
+            pen.setColor(Configuration::instance().gridColor());
             pen.setStyle(Qt::DotLine);
         }
         painter.setPen(pen);
