@@ -50,7 +50,7 @@ protected:
     virtual void doLayout();
     virtual int calcMinimumWidth() = 0;
     QRect infoContentRect();
-
+    virtual void paintBackground(QPainter* painter);
 
 protected slots:
     virtual void configure(QWidget* parent) {(void)parent;/* nothing to configure by default */}

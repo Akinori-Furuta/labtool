@@ -219,5 +219,16 @@ void UiSimpleAbstractSignal::configure()
     configure(this);
 }
 
-
-
+void UiSimpleAbstractSignal::paintBackground(QPainter* painter)
+{
+    QPalette palette = mIdLbl->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mIdLbl->setPalette(palette);
+    mNameLbl->setPalette(palette);
+    palette = mEditName->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mEditName->setPalette(palette);
+    mConfigureBtn->setIcon(QIcon(Configuration::instance().configureIcon()));
+    mDisableBtn->setIcon(QIcon(Configuration::instance().closeIcon()));
+    UiAbstractSignal::paintBackground(painter);
+}
