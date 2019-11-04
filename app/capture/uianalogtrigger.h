@@ -47,7 +47,6 @@ protected:
 
 private slots:
     void setTriggerLevel(int level);
-    void drawTriggerLevel(int level);
 
 private:
 
@@ -57,8 +56,9 @@ private:
     double mVPerDiv;
     int mScale;
 
+    void drawTriggerLevel(int level);
     void doLayout();
-    
+
 };
 
 #endif // UIANALOGTRIGGER_H
