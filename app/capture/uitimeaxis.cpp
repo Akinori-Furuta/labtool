@@ -68,7 +68,7 @@
 UiTimeAxis::UiTimeAxis(QWidget *parent) :
     UiAbstractPlotItem(parent)
 {
-    setMinimumHeight(30);
+    setMinimumHeight(34);
 
     // the default reference time is 0
     mRefTime = 0.0;
@@ -275,7 +275,7 @@ void UiTimeAxis::paintEvent(QPaintEvent *event)
             // draw text centered over a major step
             int textWidth = painter.fontMetrics().width(stepText);
             painter.drawText((MajorStepPixelWidth/NumberOfMinorSteps)*i
-                             - textWidth/2, 10, stepText);
+                             - textWidth/2, 14, stepText);
 
         }
 
