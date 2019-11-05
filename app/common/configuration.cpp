@@ -345,11 +345,11 @@ QColor Configuration::outsidePlotColor()
                 QColor(mPlotBackgroundColor).darker(105);
 }
 
-QString Configuration::closeIcon()
+QIcon Configuration::closeIcon()
 {	return mCloseIcon;
 }
 
-QString Configuration::configureIcon()
+QIcon Configuration::configureIcon()
 {	return mConfigureIcon;
 }
 
@@ -386,8 +386,8 @@ void Configuration::loadLightScheme()
     mGridColor = Qt::gray;
     mGridColorHighLight = QColor( 30, 30, 30);
 
-    mCloseIcon = ":/resources/8_close.png";
-    mConfigureIcon = ":/resources/8_configure.png";
+    mCloseIcon = QIcon(":/resources/8_close.png");
+    mConfigureIcon = QIcon(":/resources/8_configure.png");
 }
 
 /*!
@@ -423,6 +423,6 @@ void Configuration::loadDarkScheme()
     mGridColor = Qt::gray;
     mGridColorHighLight = QColor(220, 220, 220);
 
-    mCloseIcon = ":/resources/8_close_dark.png";
-    mConfigureIcon = ":/resources/8_configure_dark.png";
+    mCloseIcon = QIcon(":/resources/8_close_dark.png");
+    mConfigureIcon = QIcon(":/resources/8_configure_dark.png");
 }

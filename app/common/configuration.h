@@ -16,6 +16,7 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
+#include <QIcon>
 #include <QColor>
 #include <QList>
 
@@ -63,8 +64,8 @@ public:
     QColor analogOutCableColor(int id);
 
     QColor outsidePlotColor();
-    QString closeIcon();
-    QString configureIcon();
+    QIcon  closeIcon();
+    QIcon  configureIcon();
 
     void loadLightScheme();
     void loadDarkScheme();
@@ -98,8 +99,8 @@ private:
     QColor mAnalogInCableColors[MaxAnalogColors];
     QColor mAnalogOutCableColors[MaxAnalogColors];
 
-    QString mCloseIcon;
-    QString mConfigureIcon;
+    QIcon mCloseIcon;
+    QIcon mConfigureIcon;
 };
 
 #endif // CONFIGURATION_H

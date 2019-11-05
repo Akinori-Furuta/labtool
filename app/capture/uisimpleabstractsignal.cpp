@@ -38,14 +38,14 @@ UiSimpleAbstractSignal::UiSimpleAbstractSignal(QWidget *parent) :
 
     // Deallocation: "Qt Object trees" (See UiMainWindow)
     mDisableBtn = new QPushButton(this);
-    mDisableBtn->setIcon(QIcon(Configuration::instance().closeIcon()));
+    mDisableBtn->setIcon(Configuration::instance().closeIcon());
     mDisableBtn->setFlat(true);
     mDisableBtn->resize(12, 12); //slightly bigger than the 8x8 icon
     connect(mDisableBtn, SIGNAL(clicked()), this, SLOT(closeSignal()));
 
     // Deallocation: "Qt Object trees" (See UiMainWindow)
     mConfigureBtn = new QPushButton(this);
-    mConfigureBtn->setIcon(QIcon(Configuration::instance().configureIcon()));
+    mConfigureBtn->setIcon(Configuration::instance().configureIcon());
     mConfigureBtn->setFlat(true);
     mConfigureBtn->resize(12, 12);
     connect(mConfigureBtn, SIGNAL(clicked()), this, SLOT(configure()));
@@ -230,7 +230,7 @@ void UiSimpleAbstractSignal::paintBackground(QPainter* painter)
     palette = mEditName->palette();
     palette.setColor(QPalette::Text, cfg->textColor());
     mEditName->setPalette(palette);
-    mConfigureBtn->setIcon(QIcon(cfg->configureIcon()));
-    mDisableBtn->setIcon(QIcon(cfg->closeIcon()));
+    mConfigureBtn->setIcon(cfg->configureIcon());
+    mDisableBtn->setIcon(cfg->closeIcon());
     UiAbstractSignal::paintBackground(painter);
 }
