@@ -1174,6 +1174,7 @@ void UiAnalogSignal::paintSignals(QPainter* painter)
 
         double from;
         double to;
+        double yscale = mNumPxPerDiv/p->mSignal->vPerDiv();
 
         double fromVal;
         double toVal;
@@ -1229,9 +1230,9 @@ void UiAnalogSignal::paintSignals(QPainter* painter)
             }
 
             painter->drawLine(from,
-                              (mNumPxPerDiv/p->mSignal->vPerDiv())*(-fromVal),
+                              yscale * (-fromVal),
                               to,
-                              (mNumPxPerDiv/p->mSignal->vPerDiv())*(-toVal));
+                              yscale * (-toVal));
 
             fromIdx = j;
         }
