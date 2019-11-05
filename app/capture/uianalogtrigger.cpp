@@ -59,8 +59,8 @@ UiAnalogTrigger::UiAnalogTrigger(QWidget *parent) :
     // Deallocation: "Qt Object trees" (See UiMainWindow)
     mLevelLbl = new QLabel("0", this);
 
-    setMinimumWidth(38);
-    setMaximumWidth(38);
+    setMinimumWidth(48);
+    setMaximumWidth(48);
     setMinimumHeight(TRIGGER_STATE_HEIGHT + TRIGGER_TO_SLIDER_DIST
                      + SLIDER_MIN_HEIGHT);
 
