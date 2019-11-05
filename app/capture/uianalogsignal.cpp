@@ -414,6 +414,8 @@ void UiAnalogSignalPrivate::paintEventUpdate()
     palette.setColor(QPalette::Foreground, Configuration::instance().textColor());
     mDcBtn->setPalette(palette);
     mAcBtn->setPalette(palette);
+    mDcBtn->setFont(mIdLbl->font());
+    mAcBtn->setFont(mIdLbl->font());
     mDisableBtn->setIcon(Configuration::instance().closeIcon());
 }
 
