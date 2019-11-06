@@ -68,7 +68,8 @@
 UiTimeAxis::UiTimeAxis(QWidget *parent) :
     UiAbstractPlotItem(parent)
 {
-    setMinimumHeight(34);
+    QFontMetrics fm(parent->font());
+    setMinimumHeight(fm.height()+15);
 
     // the default reference time is 0
     mRefTime = 0.0;
