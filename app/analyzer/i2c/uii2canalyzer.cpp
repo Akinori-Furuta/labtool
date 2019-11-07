@@ -749,9 +749,20 @@ void UiI2CAnalyzer::doLayout()
     mNameLbl->move(x, y);
     mEditName->move(x, y);
 
+    QFontMetrics fmScl(mSclLbl->font());
+    int widthScl = fmScl.width(mSclLbl->text());
+    int widthSda = fmScl.width(mSdaLbl->text());
+    mSclLbl->resize(widthScl, fmScl.height());
     mSclLbl->move(r.left(), r.bottom()-mSclLbl->height());
-    mSdaLbl->move(mSclLbl->pos().x() + mSclLbl->width() + 5,
+    mSdaLbl->resize(widthSda, fmScl.height());
+    mSdaLbl->move(mSclLbl->pos().x() + widthScl + 5,
                   r.bottom()-mSdaLbl->height());
+}
+
+void UiI2CAnalyzer::changeEvent(QEvent *event)
+{
+    UiAnalyzer::changeEvent(event);
+    doLayout();
 }
 
 /*!
