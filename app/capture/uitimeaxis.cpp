@@ -69,7 +69,7 @@ UiTimeAxis::UiTimeAxis(QWidget *parent) :
     UiAbstractPlotItem(parent)
 {
     QFontMetrics fm(parent->font());
-    setMinimumHeight(fm.height()+15);
+    setMinimumHeight(fm.height() + 15);
 
     // the default reference time is 0
     mRefTime = 0.0;
@@ -254,10 +254,9 @@ void UiTimeAxis::paintEvent(QPaintEvent *event)
     (void)event;
     QPainter painter(this);
 
-    int plotWidth = width()-infoWidth();
-
-    int numMinorSteps = plotWidth
-            / (MajorStepPixelWidth/NumberOfMinorSteps) + 1;
+    const int plotWidth = width()-infoWidth();
+    const int plotSteps = MajorStepPixelWidth/NumberOfMinorSteps;
+    const int numMinorSteps = plotWidth / plotSteps + 1;
 
     painter.save();
     QPen pen = painter.pen();
@@ -265,9 +264,11 @@ void UiTimeAxis::paintEvent(QPaintEvent *event)
     painter.setPen(pen);
     painter.translate(infoWidth(), 0);
 
+    const int fontHeight = painter.fontMetrics().height();
+
     for (int i = 0; i < numMinorSteps; i++) {
         int stepHeight = 3;
-
+        int xpos = plotSteps * i;
         if (/*i > 0 &&*/ (i % NumberOfMinorSteps) == 0) {
             stepHeight += 9;
 
@@ -275,16 +276,13 @@ void UiTimeAxis::paintEvent(QPaintEvent *event)
 
             // draw text centered over a major step
             int textWidth = painter.fontMetrics().width(stepText);
-            painter.drawText((MajorStepPixelWidth/NumberOfMinorSteps)*i
-                             - textWidth/2, 14, stepText);
+            painter.drawText(xpos - textWidth/2, fontHeight, stepText);
 
         }
 
         // draw minor/major step on the time axis
-        painter.drawLine((MajorStepPixelWidth/NumberOfMinorSteps)*i,
-                         height()-stepHeight,
-                         (MajorStepPixelWidth/NumberOfMinorSteps)*i,
-                         height());
+        painter.drawLine(xpos, height() - stepHeight,
+                         xpos, height());
     }
 
     painter.restore();
