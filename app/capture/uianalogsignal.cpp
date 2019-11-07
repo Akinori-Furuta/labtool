@@ -333,15 +333,22 @@ void UiAnalogSignalPrivate::setGeometry(int x, int y, int w, int h)
             + UiAnalogSignal::SignalIdMarginRight;
 
     mIdLbl->move(wx, wy);
-
-    wx = mIdLbl->pos().x()+mIdLbl->width()
+    QFontMetrics fm(mIdLbl->font());
+    int widthId = fm.width("AW");
+    wx = mIdLbl->pos().x()+widthId
             + UiAnalogSignal::SignalIdMarginRight;
     mName->move(wx, wy);
     mEditName->move(wx, wy);
 
     mAnalogTrigger->resize(mAnalogTrigger->width(), h-mDisableBtn->height()-4);
     wy = wy+(h-mDisableBtn->height())/2 - mAnalogTrigger->height()/2;
-    mAnalogTrigger->move(x+w-mAnalogTrigger->width(), wy);
+    int xAnalogTrigger = x+w-mAnalogTrigger->width();
+    int wName = xAnalogTrigger - wx;
+    int hIdLbl = fm.height() + 4;
+    mAnalogTrigger->move(xAnalogTrigger, wy);
+    mIdLbl->resize(widthId, hIdLbl);
+    mName->resize(wName, hIdLbl);
+    mEditName->resize(wName, hIdLbl);
 
     wy = mName->pos().y() + mName->height() + 7;
     if (mEditName->isVisible()) {
