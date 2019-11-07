@@ -38,14 +38,12 @@ UiSimpleAbstractSignal::UiSimpleAbstractSignal(QWidget *parent) :
 
     // Deallocation: "Qt Object trees" (See UiMainWindow)
     mDisableBtn = new QPushButton(this);
-    mDisableBtn->setIcon(Configuration::instance().closeIcon());
     mDisableBtn->setFlat(true);
     mDisableBtn->resize(12, 12); //slightly bigger than the 8x8 icon
     connect(mDisableBtn, SIGNAL(clicked()), this, SLOT(closeSignal()));
 
     // Deallocation: "Qt Object trees" (See UiMainWindow)
     mConfigureBtn = new QPushButton(this);
-    mConfigureBtn->setIcon(Configuration::instance().configureIcon());
     mConfigureBtn->setFlat(true);
     mConfigureBtn->resize(12, 12);
     connect(mConfigureBtn, SIGNAL(clicked()), this, SLOT(configure()));
@@ -58,28 +56,19 @@ UiSimpleAbstractSignal::UiSimpleAbstractSignal(QWidget *parent) :
     // Deallocation: "Qt Object trees" (See UiMainWindow)
     mIdLbl = new QLabel(this);
 
-    QPalette palette = mIdLbl->palette();
-    palette.setColor(QPalette::Text, Configuration::instance().textColor());
-    mIdLbl->setPalette(palette);
-
     // Deallocation: "Qt Object trees" (See UiMainWindow)
     mNameLbl = new QLabel(this);
-    palette = mNameLbl->palette();
-    palette.setColor(QPalette::Text, Configuration::instance().textColor());
-    mNameLbl->setPalette(palette);
 
     // mEditName is used when changing the name of a signal
     // it will be displayed when a user clicks on the signal name
 
     // Deallocation: "Qt Object trees" (See UiMainWindow)
     mEditName = new QLineEdit(this);
-    palette = mEditName->palette();
-    palette.setColor(QPalette::Text, Configuration::instance().textColor());
-    mEditName->setPalette(palette);
     mEditName->hide();
     connect(mEditName, SIGNAL(editingFinished()), this,
             SLOT(nameEdited()));
 
+    setLightDark();
     mSelected = false;
 }
 
@@ -88,9 +77,7 @@ UiSimpleAbstractSignal::UiSimpleAbstractSignal(QWidget *parent) :
 */
 void UiSimpleAbstractSignal::setSignalName(QString name)
 {
-    QPalette palette = mNameLbl->palette();
-    palette.setColor(QPalette::Text, Configuration::instance().textColor());
-    mNameLbl->setPalette(palette);
+
     mNameLbl->setText(name);
 
     mEditName->hide();
@@ -221,6 +208,12 @@ void UiSimpleAbstractSignal::configure()
 
 void UiSimpleAbstractSignal::paintBackground(QPainter* painter)
 {
+    setLightDark();
+    UiAbstractSignal::paintBackground(painter);
+}
+
+void UiSimpleAbstractSignal::setLightDark()
+{
     Configuration *cfg = &Configuration::instance();
 
     QPalette palette = mIdLbl->palette();
@@ -229,8 +222,9 @@ void UiSimpleAbstractSignal::paintBackground(QPainter* painter)
     mNameLbl->setPalette(palette);
     palette = mEditName->palette();
     palette.setColor(QPalette::Text, cfg->textColor());
+    palette.setColor(QPalette::Base, cfg->plotBackgroundColor());
+    palette.setColor(QPalette::Background, cfg->plotBackgroundColor());
     mEditName->setPalette(palette);
     mConfigureBtn->setIcon(cfg->configureIcon());
     mDisableBtn->setIcon(cfg->closeIcon());
-    UiAbstractSignal::paintBackground(painter);
 }

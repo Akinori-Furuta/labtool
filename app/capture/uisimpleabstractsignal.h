@@ -64,9 +64,7 @@ private:
     QPushButton *mDisableBtn;
     QPushButton *mConfigureBtn;
 
-
-
-    
+    void setLightDark();
 };
 
 #endif // UISIMPLEABSTRACTSIGNAL_H
