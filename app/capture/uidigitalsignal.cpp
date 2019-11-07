@@ -434,16 +434,23 @@ void UiDigitalSignal::doLayout()
     int y = r.top();
 
     mColorLbl->move(r.left(), y);
+    QFontMetrics fm(mColorLbl->font());
 
     int x = mColorLbl->pos().x()+mColorLbl->width() + SignalIdMarginRight;
     mIdLbl->move(x, y);
-
-    x += mIdLbl->width() + SignalIdMarginRight;
+    int wIdLbl = fm.width("DW");
+    x += wIdLbl + SignalIdMarginRight;
+    int xNameLbl = x;
     mNameLbl->move(x, y);
     mEditName->move(x, y);
 
     x = r.right()-mTrigger->width()/*-5*/;
     mTrigger->move(x, y);
+    int wNameLbl = x - xNameLbl;
+    int hNameLbl = fm.height() + 4;
+    mIdLbl->resize(wIdLbl, hNameLbl);
+    mNameLbl->resize(wNameLbl, hNameLbl);
+    mEditName->resize(wNameLbl, hNameLbl);
 }
 
 /*!
