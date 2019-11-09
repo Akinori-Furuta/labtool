@@ -109,6 +109,7 @@ public slots:
 protected:
     void paintEvent(QPaintEvent *event);
     void showEvent(QShowEvent* event);
+    virtual void changeEvent(QEvent *event);
 
 private:
 

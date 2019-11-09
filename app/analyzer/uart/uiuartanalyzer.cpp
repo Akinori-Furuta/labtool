@@ -652,14 +652,26 @@ void UiUartAnalyzer::doLayout()
     QRect r = infoContentRect();
     int y = r.top();
 
+    QFontMetrics fm(mIdLbl->font());
+    int wIdLbl = fm.width(mIdLbl->text());
     mIdLbl->move(r.left(), y);
+    mIdLbl->resize(wIdLbl, fm.height());
 
-    int x = mIdLbl->pos().x()+mIdLbl->width() + SignalIdMarginRight;
+    int x = mIdLbl->pos().x()+ wIdLbl + SignalIdMarginRight;
+    int wNameLbl = fm.width(mNameLbl->text());
     mNameLbl->move(x, y);
+    mNameLbl->resize(wNameLbl, fm.height());
     mEditName->move(x, y);
+    mEditName->resize(mEditName->width(), fm.height());
 
-    mSignalLbl->move(r.left(), r.bottom()-mSignalLbl->height());
+    mSignalLbl->move(r.left(), r.bottom()-fm.height());
+    mSignalLbl->resize(fm.width(mSignalLbl->text()) ,fm.height());
+}
 
+void UiUartAnalyzer::changeEvent(QEvent *event)
+{
+    UiAnalyzer::changeEvent(event);
+    doLayout();
 }
 
 /*!
