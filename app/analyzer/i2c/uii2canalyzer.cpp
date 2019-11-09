@@ -743,10 +743,15 @@ void UiI2CAnalyzer::doLayout()
     QRect r = infoContentRect();
     int y = r.top();
 
+    QFontMetrics fm(mIdLbl->font());
+    int wIdLbl = fm.width(mIdLbl->text());
     mIdLbl->move(r.left(), y);
+    mIdLbl->resize(wIdLbl, fm.height());
 
-    int x = mIdLbl->pos().x()+mIdLbl->width() + SignalIdMarginRight;
+    int x = mIdLbl->pos().x()+ wIdLbl + SignalIdMarginRight;
+    int wNameLbl = fm.width(mNameLbl->text());
     mNameLbl->move(x, y);
+    mNameLbl->resize(wNameLbl, fm.height());
     mEditName->move(x, y);
 
     QFontMetrics fmScl(mSclLbl->font());
