@@ -668,6 +668,12 @@ void UiSpiAnalyzer::showEvent(QShowEvent* event)
     setMinimumInfoWidth(calcMinimumWidth());
 }
 
+void UiSpiAnalyzer::changeEvent(QEvent *event)
+{
+    UiAnalyzer::changeEvent(event);
+    doLayout();
+}
+
 /*!
     Called when the info width has changed for this widget.
 */
@@ -686,23 +692,40 @@ void UiSpiAnalyzer::doLayout()
     QRect r = infoContentRect();
     int y = r.top();
 
+    QFontMetrics fm(mIdLbl->font());
+    int wIdLbl = fm.width(mIdLbl->text());
     mIdLbl->move(r.left(), y);
+    mIdLbl->resize(wIdLbl, fm.height());
 
-    int x = mIdLbl->pos().x()+mIdLbl->width() + SignalIdMarginRight;
+    int x = mIdLbl->pos().x()+ wIdLbl + SignalIdMarginRight;
+    int wNameLbl = fm.width(mNameLbl->text());
     mNameLbl->move(x, y);
+    mNameLbl->resize(wNameLbl, fm.height());
     mEditName->move(x, y);
+    mEditName->resize(mEditName->width(), fm.height());
 
-    mMosiLbl->move(r.left(), r.bottom()-mMosiLbl->height()-mSckLbl->height());
-    mMisoLbl->move(r.left()+5+mMosiLbl->width(), r.bottom()-mMisoLbl->height()
-                   -mSckLbl->height());
+    fm = QFontMetrics(mMosiLbl->font());
+    int ySignalAssignment = r.bottom() - fm.height() * 2;
+    int wMosiLbl = fm.width(mMosiLbl->text());
+    int wSckLbl = fm.width(mSckLbl->text());
+    int wMosiSck = ((wMosiLbl >= wSckLbl) ? wMosiLbl : wSckLbl);
+    int xMosiSck = r.left() + wMosiSck + 5;
 
-    mSckLbl->move(r.left(), r.bottom()-mSckLbl->height());
-    mEnableLbl->move(r.left()+5+mMosiLbl->width(),
-                     r.bottom()-mSckLbl->height());
+    mMosiLbl->move(r.left(), ySignalAssignment);
+    mMisoLbl->move(xMosiSck, ySignalAssignment);
 
-    mEnableLbl->resize(mMisoLbl->width(),
-                       mEnableLbl->minimumSizeHint().height());
-    mSckLbl->resize(mMosiLbl->width(), mSckLbl->minimumSizeHint().height());
+    ySignalAssignment = r.bottom() - fm.height();
+    mSckLbl->move(r.left(), ySignalAssignment);
+    mEnableLbl->move(xMosiSck, ySignalAssignment);
+
+    int wMisoLbl = fm.width(mMisoLbl->text());
+    int wEnableLbl = fm.width(mEnableLbl->text());
+    int wMisoEnable = ((wMisoLbl >= wEnableLbl) ? wMisoLbl : wEnableLbl);
+
+    mMosiLbl->resize(wMosiSck, fm.height());
+    mMisoLbl->resize(wMisoEnable, fm.height());
+    mSckLbl->resize(wMosiSck,  fm.height());
+    mEnableLbl->resize(wMisoEnable, fm.height());
 }
 
 /*!
