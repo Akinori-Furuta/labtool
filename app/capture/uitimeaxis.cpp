@@ -68,9 +68,6 @@
 UiTimeAxis::UiTimeAxis(QWidget *parent) :
     UiAbstractPlotItem(parent)
 {
-    QFontMetrics fm(parent->font());
-    setMinimumHeight(fm.height() + 15);
-
     // the default reference time is 0
     mRefTime = 0.0;
     // 1 ms is the default time between major steps
@@ -83,6 +80,7 @@ UiTimeAxis::UiTimeAxis(QWidget *parent) :
     // we don't want the background to be transparent since signals should
     // be put behind the time axis during vertical scroll
     setAutoFillBackground(true);
+    doLayout();
 }
 
 /*!
@@ -99,6 +97,16 @@ double UiTimeAxis::rangeUpper()
 double UiTimeAxis::rangeLower()
 {
     return mRangeLower;
+}
+
+/*!
+    Handle Qt Change Event (ex. change appearance)
+*/
+void UiTimeAxis::changeEvent(QEvent *event)
+{
+    UiAbstractPlotItem::changeEvent(event);
+    doLayout();
+    updateRange();
 }
 
 /*!
@@ -267,10 +275,10 @@ void UiTimeAxis::paintEvent(QPaintEvent *event)
     const int fontHeight = painter.fontMetrics().height();
 
     for (int i = 0; i < numMinorSteps; i++) {
-        int stepHeight = 3;
+        int stepHeight = MinorTickHeight;
         int xpos = plotSteps * i;
         if (/*i > 0 &&*/ (i % NumberOfMinorSteps) == 0) {
-            stepHeight += 9;
+            stepHeight = MajorTickHeight;
 
             QString stepText = getTimeLabelForStep(i/NumberOfMinorSteps);
 
@@ -294,6 +302,7 @@ void UiTimeAxis::paintEvent(QPaintEvent *event)
 void UiTimeAxis::resizeEvent(QResizeEvent* event)
 {
     (void)event;
+    doLayout();
     updateRange();
 }
 
@@ -302,7 +311,20 @@ void UiTimeAxis::resizeEvent(QResizeEvent* event)
 */
 void UiTimeAxis::infoWidthChanged()
 {
+    doLayout();
     updateRange();
+}
+
+/*!
+    Layout Time value and ticks.
+*/
+void UiTimeAxis::doLayout()
+{
+    QPainter painter(this);
+    const int fontHeight = painter.fontMetrics().height();
+    const int hTimeScale = fontHeight + TimeTickSpace + MajorTickHeight;
+    setMinimumHeight(hTimeScale);
+    setMaximumHeight(hTimeScale);
 }
 
 /*!

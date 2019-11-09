@@ -53,7 +53,12 @@ public:
         // maximum step time as power of 10
         MaxStepAsPowOf10 = 3,
         // minimum reference time as power of 10
-        MinRefTimeAsPowOf10 = -12
+        MinRefTimeAsPowOf10 = -12,
+
+        // Major Tick height
+        MajorTickHeight = 12,
+        MinorTickHeight = 3,
+        TimeTickSpace = 3,
     };
 
 signals:
@@ -65,6 +70,7 @@ protected:
     void resizeEvent(QResizeEvent* event);
 
     void infoWidthChanged();
+    virtual void changeEvent(QEvent *event);
 
 
 private:
@@ -73,6 +79,7 @@ private:
     double mRangeLower;
     double mRangeUpper;
 
+    void doLayout();
     void updateRange();
     QString getTimeLabelForStep(int majorStep);
     int closestUnitDigit(double value);
