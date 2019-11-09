@@ -60,6 +60,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event);
     void showEvent(QShowEvent* event);
     void leaveEvent(QEvent* event);
+    virtual void changeEvent(QEvent* event);
 
 private slots:
     void nameEdited();

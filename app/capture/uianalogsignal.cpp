@@ -1282,6 +1282,15 @@ void UiAnalogSignal::infoWidthChanged()
 }
 
 /*!
+    Handle Qt change event (ex. change desktop appearance).
+*/
+void UiAnalogSignal::changeEvent(QEvent *event)
+{
+    UiAbstractSignal::changeEvent(event);
+    doLayout();
+}
+
+/*!
     Update the layout, that is, position and redraw signals.
 */
 void UiAnalogSignal::doLayout()
