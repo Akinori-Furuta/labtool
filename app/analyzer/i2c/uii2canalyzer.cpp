@@ -753,6 +753,7 @@ void UiI2CAnalyzer::doLayout()
     mNameLbl->move(x, y);
     mNameLbl->resize(wNameLbl, fm.height());
     mEditName->move(x, y);
+    mEditName->resize(mEditName->width(), fm.height());
 
     QFontMetrics fmScl(mSclLbl->font());
     int widthScl = fmScl.width(mSclLbl->text());
