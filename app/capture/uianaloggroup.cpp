@@ -13,6 +13,8 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
+#include <QtGlobal>
 #include "uianaloggroup.h"
 
 /*!
@@ -114,6 +116,12 @@ void UiAnalogGroup::showEvent(QShowEvent* event)
     doLayout();
 }
 
+void UiAnalogGroup::changeEvent(QEvent *event)
+{
+    doLayout();
+    QGroupBox::changeEvent(event);
+}
+
 /*!
     Returns the minimum size of this widget.
 */
@@ -179,44 +187,35 @@ void UiAnalogGroup::setupLabels()
 */
 void UiAnalogGroup::doLayout()
 {
-
-    int maxLblWidth = 0;
-    int minWidth = 0;
     QMargins boxMargins = contentsMargins();
 
-
+    /* Note: Assume that label and level use same font. */
+    QFontMetrics fm(mMeasureLevelDiffLbl[0]->font());
+    int wLabel = fm.width("|A5-A6|:");
     //
     //    make sure all labels are resized to their minimum size
     //
 
     for (int i = 0; i < mNumSignals; i++) {
+        QLabel	*label = mMeasureLevelLbl[i];
+        QLabel	*level = mMeasureLevel[i];
 
-        mMeasureLevelLbl[i]->resize(mMeasureLevelLbl[i]->minimumSizeHint());
-        mMeasureLevel[i]->resize(mMeasureLevel[i]->minimumSizeHint());
+        label->resize(wLabel, fm.height());
+        level->resize(fm.width(level->text()), fm.height());
 
-        if (mMeasureLevelLbl[i]->minimumSizeHint().width() > maxLblWidth) {
-            maxLblWidth = mMeasureLevelLbl[i]->minimumSizeHint().width();
-        }
+        label = mMeasurePkLbl[i];
+        level = mMeasurePk[i];
 
-        mMeasurePkLbl[i]->resize(mMeasurePkLbl[i]->minimumSizeHint());
-        mMeasurePk[i]->resize(mMeasurePk[i]->minimumSizeHint());
-
-        if (mMeasurePkLbl[i]->minimumSizeHint().width() > maxLblWidth) {
-            maxLblWidth = mMeasurePkLbl[i]->minimumSizeHint().width();
-        }
+        label->resize(wLabel, fm.height());
+        level->resize(fm.width(level->text()), fm.height());
 
         if ((i % 2) == 1) {
 
-            mMeasureLevelDiffLbl[i/2]->resize(mMeasureLevelDiffLbl[i/2]
-                                              ->minimumSizeHint());
-            mMeasureLevelDiff[i/2]->resize(mMeasureLevelDiff[i/2]
-                                           ->minimumSizeHint());
+            label = mMeasureLevelDiffLbl[i/2];
+            level = mMeasureLevelDiff[i/2];
 
-            if (mMeasureLevelDiffLbl[i/2]->minimumSizeHint().width()
-                    > maxLblWidth) {
-                maxLblWidth = mMeasureLevelDiffLbl[i/2]->minimumSizeHint()
-                        .width();
-            }
+            label->resize(wLabel, fm.height());
+            level->resize(fm.width(level->text()), fm.height());
 
         }
 
@@ -229,35 +228,31 @@ void UiAnalogGroup::doLayout()
 
     int yPos = MarginTop + boxMargins.top();
     int xPos = MarginLeft + boxMargins.left();
-    int xPosRight = xPos + maxLblWidth + HoriDistBetweenRelated;
+    int xPosRight = xPos + wLabel + HoriDistBetweenRelated;
 
     for (int i = 0; i < mNumSignals; i++) {
+        QLabel	*label = mMeasureLevelLbl[i];
+        QLabel	*level = mMeasureLevel[i];
 
-        mMeasureLevelLbl[i]->move(xPos, yPos);
-        mMeasureLevel[i]->move(xPosRight, yPos);
+        label->move(xPos, yPos);
+        level->move(xPosRight, yPos);
 
-        yPos += mMeasureLevel[i]->height()+VertDistBetweenRelated;
+        yPos += fm.height() + VertDistBetweenRelated;
 
-        if (mMeasureLevel[i]->x()+mMeasureLevel[i]->width() > minWidth) {
-            minWidth = mMeasureLevel[i]->x()+mMeasureLevel[i]->width();
-        }
     }
 
     if (mNumSignals/2 > 0) {
         yPos += VertDistBetweenUnrelated;
 
         for (int i = 0; i < mNumSignals/2; i++) {
+            QLabel *label = mMeasureLevelDiffLbl[i/2];
+            QLabel *level = mMeasureLevelDiff[i/2];
 
-            mMeasureLevelDiffLbl[i]->move(xPos, yPos);
-            mMeasureLevelDiff[i]->move(xPosRight, yPos);
+            label->move(xPos, yPos);
+            level->move(xPosRight, yPos);
 
-            yPos += mMeasureLevelDiff[i]->height()+VertDistBetweenRelated;
+            yPos += fm.height() + VertDistBetweenRelated;
 
-            if (mMeasureLevelDiff[i]->x()+mMeasureLevelDiff[i]->width()
-                    > minWidth) {
-                minWidth = mMeasureLevelDiff[i]->x()+mMeasureLevelDiff[i]
-                        ->width();
-            }
         }
     }
 
@@ -265,15 +260,14 @@ void UiAnalogGroup::doLayout()
     yPos += VertDistBetweenUnrelated;
 
     for (int i = 0; i < mNumSignals; i++) {
+        QLabel	*label = mMeasurePkLbl[i];
+        QLabel	*level = mMeasurePk[i];
 
-        mMeasurePkLbl[i]->move(xPos, yPos);
-        mMeasurePk[i]->move(xPosRight, yPos);
+        label->move(xPos, yPos);
+        level->move(xPosRight, yPos);
 
-        yPos += mMeasurePk[i]->height()+VertDistBetweenRelated;
+        yPos += fm.height() + VertDistBetweenRelated;
 
-        if (mMeasurePk[i]->x()+mMeasurePk[i]->width() > minWidth) {
-            minWidth = mMeasurePk[i]->x()+mMeasurePk[i]->width();
-        }
     }
 
 

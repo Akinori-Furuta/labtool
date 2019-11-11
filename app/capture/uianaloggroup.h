@@ -38,7 +38,7 @@ protected:
 
     QSize minimumSizeHint() const;
     QSize sizeHint() const;
-
+    virtual void changeEvent(QEvent *event);
 
 private:
 
