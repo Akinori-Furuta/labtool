@@ -74,33 +74,44 @@ void UiAnalogGroup::setNumSignals(int numSignals)
 void UiAnalogGroup::setMeasurementData(QList<double>level, QList<double>pk,
                                        bool active)
 {
+    QLabel *labelLevel;
+    QLabel *labelDiff;
+    QLabel *labelPk;
+
     (void)active;
     for (int i = 0; i < mNumSignals; i++) {
+        labelLevel = mMeasureLevel[i];
+
         if (i < level.size()) {
 
-            mMeasureLevel[i]->setText(QString("%1 V").arg(level.at(i)));
+            labelLevel->setText(QString("%1 V").arg(level.at(i)));
+            labelLevel->setVisible(true);
             if ((i % 2) == 1) {
                 double diff = level.at(i-1)-level.at(i);
                 if (diff < 0) diff = -diff;
-                mMeasureLevelDiff[i/2]->setText(QString("%1 V").arg(diff));
+                labelDiff = mMeasureLevelDiff[i/2];
+                labelDiff->setText(QString("%1 V").arg(diff));
+                labelDiff->setVisible(true);
             }
 
         }
         else {
-            mMeasureLevel[i]->setText("");
+            labelLevel->setVisible(false);
             if ((i % 2) == 1) {
-                mMeasureLevelDiff[i/2]->setText("");
+                labelDiff = mMeasureLevelDiff[i/2];
+                labelDiff->setVisible(false);
             }
         }
     }
 
     for (int i = 0; i < mNumSignals; i++) {
+        labelPk = mMeasurePk[i];
         if (i < pk.size()) {
-            mMeasurePk[i]->setText(QString("%1 V").arg(pk.at(i)));
+            labelPk->setText(QString("%1 V").arg(pk.at(i)));
+            labelPk->setVisible(true);
         }
         else {
-            mMeasurePk[i]->setText("");
-
+            labelPk->setVisible(false);
         }
     }
 
@@ -188,34 +199,41 @@ void UiAnalogGroup::setupLabels()
 void UiAnalogGroup::doLayout()
 {
     QMargins boxMargins = contentsMargins();
+    QSize savedMinSize = mMinSize;
 
     /* Note: Assume that label and level use same font. */
     QFontMetrics fm(mMeasureLevelDiffLbl[0]->font());
     int wLabel = fm.width("|A5-A6|:");
+    int wValueMax = 0;
     //
     //    make sure all labels are resized to their minimum size
     //
 
     for (int i = 0; i < mNumSignals; i++) {
-        QLabel	*label = mMeasureLevelLbl[i];
-        QLabel	*level = mMeasureLevel[i];
-
+        QLabel *label = mMeasureLevelLbl[i];
+        QLabel *level = mMeasureLevel[i];
+        int    wValue = fm.width(level->text());
         label->resize(wLabel, fm.height());
-        level->resize(fm.width(level->text()), fm.height());
+        level->resize(wValue, fm.height());
+        wValueMax = qMax(wValueMax, wValue);
 
         label = mMeasurePkLbl[i];
         level = mMeasurePk[i];
+        wValue = fm.width(level->text());
 
         label->resize(wLabel, fm.height());
-        level->resize(fm.width(level->text()), fm.height());
+        level->resize(wValue, fm.height());
+        wValueMax = qMax(wValueMax, wValue);
 
         if ((i % 2) == 1) {
 
             label = mMeasureLevelDiffLbl[i/2];
             level = mMeasureLevelDiff[i/2];
 
+            wValue = fm.width(level->text());
             label->resize(wLabel, fm.height());
-            level->resize(fm.width(level->text()), fm.height());
+            level->resize(wValue, fm.height());
+            wValueMax = qMax(wValueMax, wValue);
 
         }
 
@@ -231,11 +249,13 @@ void UiAnalogGroup::doLayout()
     int xPosRight = xPos + wLabel + HoriDistBetweenRelated;
 
     for (int i = 0; i < mNumSignals; i++) {
-        QLabel	*label = mMeasureLevelLbl[i];
-        QLabel	*level = mMeasureLevel[i];
+        QLabel *label = mMeasureLevelLbl[i];
+        QLabel *level = mMeasureLevel[i];
+        int    wValue = fm.width(level->text());
 
         label->move(xPos, yPos);
         level->move(xPosRight, yPos);
+        wValueMax = qMax(wValueMax, wValue);
 
         yPos += fm.height() + VertDistBetweenRelated;
 
@@ -247,9 +267,11 @@ void UiAnalogGroup::doLayout()
         for (int i = 0; i < mNumSignals/2; i++) {
             QLabel *label = mMeasureLevelDiffLbl[i/2];
             QLabel *level = mMeasureLevelDiff[i/2];
+            int    wValue = fm.width(level->text());
 
             label->move(xPos, yPos);
             level->move(xPosRight, yPos);
+            wValueMax = qMax(wValueMax, wValue);
 
             yPos += fm.height() + VertDistBetweenRelated;
 
@@ -260,15 +282,24 @@ void UiAnalogGroup::doLayout()
     yPos += VertDistBetweenUnrelated;
 
     for (int i = 0; i < mNumSignals; i++) {
-        QLabel	*label = mMeasurePkLbl[i];
-        QLabel	*level = mMeasurePk[i];
+        QLabel *label = mMeasurePkLbl[i];
+        QLabel *level = mMeasurePk[i];
+        int    wValue = fm.width(level->text());
 
         label->move(xPos, yPos);
         level->move(xPosRight, yPos);
+        wValueMax = qMax(wValueMax, wValue);
 
         yPos += fm.height() + VertDistBetweenRelated;
 
     }
-
-
+    int xSize = xPosRight + wValueMax + MarginRight + boxMargins.right();
+    int ySize = yPos + MarginBottom + boxMargins.bottom();
+    xSize = (xSize + 0xf) & (~0xf);
+    ySize = (ySize + 0xf) & (~0xf);
+    setMinimumSize(xSize, yPos);
+    mMinSize = QSize(xSize, ySize);
+    if (savedMinSize != mMinSize) {
+        updateGeometry();
+    }
 }
