@@ -470,10 +470,8 @@ int UiAnalogSignalPrivate::minimumWidth()
 */
 int UiAnalogSignalPrivate::minimumHeight()
 {
-    int h = mDisableBtn->height() + mAnalogTrigger->minimumHeight() + 10;
-    h += (5 + mDcBtn->height());
-
-    return h;
+    QFontMetrics fm(mIdLbl->font());
+    return mDisableBtn->height() + 5 * fm.height();
 }
 
 
