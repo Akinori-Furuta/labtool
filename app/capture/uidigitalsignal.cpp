@@ -58,7 +58,7 @@ UiDigitalSignal::UiDigitalSignal(DigitalSignal* s, QWidget *parent) :
     mIdLbl->setText(QString("D%1").arg(s->id()));
     mNameLbl->setText(s->name());
 
-    mColorLbl->setText("  ");
+    mColorLbl->setText("    ");
     QString color = Configuration::instance().digitalCableColor(s->id()).name();
     mColorLbl->setStyleSheet(QString(
         "QLabel { background-color : %1; "
@@ -435,8 +435,9 @@ void UiDigitalSignal::doLayout()
 
     mColorLbl->move(r.left(), y);
     QFontMetrics fm(mColorLbl->font());
-
-    int x = mColorLbl->pos().x()+mColorLbl->width() + SignalIdMarginRight;
+    int wColorLbl = fm.width(mColorLbl->text());
+    mColorLbl->resize(wColorLbl, fm.height() + 3);
+    int x = mColorLbl->pos().x()+ wColorLbl + SignalIdMarginRight;
     mIdLbl->move(x, y);
     int wIdLbl = fm.width("DW");
     x += wIdLbl + SignalIdMarginRight;
@@ -451,6 +452,7 @@ void UiDigitalSignal::doLayout()
     mIdLbl->resize(wIdLbl, hNameLbl);
     mNameLbl->resize(wNameLbl, hNameLbl);
     mEditName->resize(wNameLbl, hNameLbl);
+    setMinimumHeight(y + hNameLbl);
 }
 
 /*!
