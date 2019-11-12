@@ -477,10 +477,11 @@ void UiPlot::dropEvent(QDropEvent *event)
 */
 void UiPlot::updateLayout()
 {
-
-    int yPos = mTimeAxis->height();
+    int yPos = mTimeAxis->estimateHeight();
     int w = mCursor->minimumInfoWidth();
 
+    mGrid->move(0, yPos);
+    mCursor->move(0, yPos);
 
     // get the widest info width
     foreach(UiAbstractSignal* signal, mSignalManager->signalList()) {
@@ -623,4 +624,5 @@ void UiPlot::handleSignalsRemoved()
 {
     updateVerticalScrollBar();
     updateLayout();
+
 }

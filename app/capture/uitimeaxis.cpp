@@ -315,16 +315,24 @@ void UiTimeAxis::infoWidthChanged()
     updateRange();
 }
 
+int UiTimeAxis::estimateHeight()
+{
+    QPainter painter(this);
+    int fontHeight = painter.fontMetrics().height();
+    int hTimeScale = fontHeight + TimeTickSpace + MajorTickHeight;
+    return hTimeScale;
+}
+
 /*!
     Layout Time value and ticks.
 */
 void UiTimeAxis::doLayout()
 {
-    QPainter painter(this);
-    const int fontHeight = painter.fontMetrics().height();
-    const int hTimeScale = fontHeight + TimeTickSpace + MajorTickHeight;
+    int hTimeScale = estimateHeight();
+    resize(width(), hTimeScale);
     setMinimumHeight(hTimeScale);
     setMaximumHeight(hTimeScale);
+    updateGeometry();
 }
 
 /*!

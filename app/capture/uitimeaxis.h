@@ -39,6 +39,7 @@ public:
     void zoom(int steps, double xCenter);
     void zoomAll(double lowerTime, double upperTime);
     void moveAxis(int differenceInPixels);
+    int estimateHeight();
 
     enum Constants {
         // number of pixels between major steps
