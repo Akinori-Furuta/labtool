@@ -15,6 +15,8 @@
  */
 #include "uicursor.h"
 
+#include <limits>
+#include <QtGlobal>
 #include <QDebug>
 #include <QPainter>
 #include <QPainterPath>
@@ -112,7 +114,7 @@ UiCursor::UiCursor(SignalManager *signalManager, UiTimeAxis *axis, QWidget *pare
     mCursorDrag = NoCursor;
     mPressXPos = -1;
     mPressYPos = -1;
-
+    mCursorLabelWidth = CursorClickBand;
 
     mMinWidthSet = false;
 
@@ -305,6 +307,17 @@ QMap<UiCursor::CursorId, QString> UiCursor::activeCursors()
     or disabled)
 */
 
+int UiCursor::estimateCursorBarHeight()
+{
+    QFontMetrics fm(this->font());
+    int textHeight = fm.height();
+    int result = CursorHeight + CursorLabelSpace + textHeight + CursorBottomSpace;
+    if (result < CursorBarMinHeight) {
+        result = CursorBarMinHeight;
+    }
+    return result;
+}
+
 /*!
     The paint event handler requesting to repaint this widget.
 */
@@ -312,14 +325,14 @@ void UiCursor::paintEvent(QPaintEvent *event)
 {
     (void)event;
     QPainter painter(this);
-
-    int barStart = height()-CursorBarHeight;
+    int hBarHeight = estimateCursorBarHeight();
+    int barStart = height() - hBarHeight;
 
 
     //
     //    Paint cursor bar background
     //
-    painter.fillRect(0, barStart, width(), CursorBarHeight,
+    painter.fillRect(0, barStart, width(), hBarHeight,
                      Configuration::instance().outsidePlotColor());
 
 
@@ -328,7 +341,7 @@ void UiCursor::paintEvent(QPaintEvent *event)
     //
     QString lbl = QString("Cursors");
     // is this the correct way to check the height of the painted character?
-    int textHeight = painter.fontMetrics().tightBoundingRect(lbl).height();
+    int textHeight = painter.fontMetrics().height();
 
     if (!mMinWidthSet) {
         int textWidth = painter.fontMetrics().width(lbl);
@@ -340,7 +353,7 @@ void UiCursor::paintEvent(QPaintEvent *event)
     QPen pen = painter.pen();
     pen.setColor(Qt::darkGray);
     painter.setPen(pen);
-    painter.drawText(10, barStart+CursorBarHeight/2+textHeight/2, lbl);
+    painter.drawText(10, barStart + (hBarHeight + textHeight) / 2, lbl);
     painter.restore();
 
 
@@ -389,22 +402,22 @@ void UiCursor::paintCursorSymbol(QPainter* painter, int cursorId)
     //    and the triangle is positioned at the outer edges of the viewing area.
 
 
-
+    int yCursorPosition = calcCursorYPosition(cursorId);
     // cursor is to the left of the viewing area
     if (cursorX < infoWidth()) {
-        painter->translate(infoWidth()+1, calcCursorYPosition(cursorId));
+        painter->translate(infoWidth()+1, yCursorPosition);
         painter->rotate(-90);
     }
 
     // cursor is to the right of the viewing area
     else if (cursorX > width()) {
-        painter->translate(width()-1, calcCursorYPosition(cursorId));
+        painter->translate(width()-1, yCursorPosition);
         painter->rotate(90);
     }
 
     // cursor is within the viewing area
     else {
-        painter->translate(cursorX, calcCursorYPosition(cursorId));
+        painter->translate(cursorX, yCursorPosition);
     }
 
     painter->drawPath(path);
@@ -413,7 +426,7 @@ void UiCursor::paintCursorSymbol(QPainter* painter, int cursorId)
     if (mCursorOn[cursorId]) {
         painter->fillPath(path, Configuration::instance().cursorColor(cursorId));
     }
-
+    mCursorLabelWidth = CursorClickBand;
     // cursor name/ID
     if (cursorX >= infoWidth() && cursorX < width()) {
         QString cNum = QString("C%1").arg(cursorId);
@@ -421,11 +434,12 @@ void UiCursor::paintCursorSymbol(QPainter* painter, int cursorId)
             cNum = QString("T");
         }
         int textWidth = painter->fontMetrics().width(cNum);
+        mCursorLabelWidth = qMax(mCursorLabelWidth, textWidth);
 
         // is this the correct way to check the height of the painted character?
-        int textHeight = painter->fontMetrics().tightBoundingRect(cNum).height();
+        int textHeight = painter->fontMetrics().height();
 
-        painter->drawText(-textWidth/2, CursorHeight+textHeight+3, cNum);
+        painter->drawText(-textWidth/2, CursorHeight + CursorLabelSpace + textHeight - CursorBottomSpace, cNum);
     }
 
     painter->restore();
@@ -436,6 +450,9 @@ void UiCursor::paintCursorSymbol(QPainter* painter, int cursorId)
 */
 void UiCursor::paintCursors(QPainter* painter)
 {
+    int hBarHeight = estimateCursorBarHeight();
+    int hLine = height() - hBarHeight - 1;
+
     for (int i = 0; i < NumCursors; i++) {
 
         int cursorX = calcCursorXPosition(i);
@@ -450,7 +467,7 @@ void UiCursor::paintCursors(QPainter* painter)
             painter->setPen(pen);
 
             painter->setRenderHint(QPainter::Antialiasing);
-            painter->drawLine(cursorX, 0,cursorX, height()-CursorBarHeight-1);
+            painter->drawLine(cursorX, 0,cursorX, hLine);
 
             painter->restore();
 
@@ -467,32 +484,43 @@ void UiCursor::paintCursors(QPainter* painter)
 UiCursor::CursorId UiCursor::findCursor(const QPoint &pos)
 {
     double time = mTimeAxis->pixelToTimeRelativeRef(pos.x());
-    double diff = mTimeAxis->pixelToTimeRelativeRef(pos.x()+4)-time;
+    double diff = mTimeAxis->pixelToTimeRelativeRef(pos.x() + mCursorLabelWidth / 2)-time;
+    QPainter painter(this);
+    int hBarHeight = estimateCursorBarHeight();
+
+    double diff_min = std::numeric_limits<double>::max();
+
     if (diff < 0) diff = -diff;
 
     UiCursor::CursorId cursor = NoCursor;
 
-    // Looping from highest to lowest in order to give the trigger
-    // cursor (index 0) the lowest priority when searching for the closest
-    // cursor.
+    // Choose nearlest cursor from pointer position.
+    // if two or more cursors are nearlest,
+    // choose more higher number of cursor.
     for (int i = NumCursors-1; i >= 0; i--) {
-        if (time-diff <= mCursor[i] && time+diff >= mCursor[i]) {
+        double x1 = time - diff;
+        double x2 = time + diff;
+        double tCursor = mCursor[i];
 
-            if (mCursorOn[i]) {
-                cursor = (UiCursor::CursorId)i;
-                break;
+        if ((x1 <= tCursor) && (tCursor <= x2)) {
+
+            if ((mCursorOn[i]) ||
+                ((pos.y() >= (height() - hBarHeight)) && (pos.y() < height()))) {
+                /* "Cursor is on" or "Pointer on CursorBar" */
+                double dt;
+
+                dt = tCursor - x1;
+                if (dt < diff_min) {
+                    diff_min = dt;
+                    cursor = (UiCursor::CursorId)i;
+                }
+
+                dt = x2 - tCursor;
+                if (dt < diff_min) {
+                    diff_min = dt;
+                    cursor = (UiCursor::CursorId)i;
+                }
             }
-
-            //
-            //    If cursor is found, but it is not enabled we only select the
-            //    cursor when clicking in the cursor bar
-            //
-
-            else if (pos.y() >= (height()-CursorBarHeight) && pos.y() < height()){
-                cursor = (UiCursor::CursorId)i;
-                break;
-            }
-
         }
     }
 
@@ -502,7 +530,7 @@ UiCursor::CursorId UiCursor::findCursor(const QPoint &pos)
     //
 
     if (cursor == NoCursor &&
-            pos.y() >= (height()-CursorBarHeight)
+            pos.y() >= (height() - hBarHeight)
             && pos.y() < height())
     {
         UiCursor::CursorId outCursor = NoCursor;
@@ -547,14 +575,21 @@ UiCursor::CursorId UiCursor::findCursor(const QPoint &pos)
 */
 int UiCursor::calcCursorYPosition(int cursorId)
 {
-    int barStart = height()-CursorBarHeight;
+    int hBar = estimateCursorBarHeight();
+    int barStart = height() - hBar;
     int barOff = 2;
     int cursorX = calcCursorXPosition(cursorId);
 
     int result = barStart + barOff;
 
     if (cursorX < infoWidth() || cursorX > width()) {
-        result += CursorWidth/2+cursorId*(2*CursorWidth/3);
+        int hCursorHalf = CursorWidth / 2;
+        double dyCursor = hBar - barOff - hCursorHalf;
+        dyCursor /= NumCursors;
+        if (dyCursor <= 0) {
+            dyCursor = 1;
+        }
+        result += hCursorHalf + cursorId * dyCursor;
     }
 
     return result;

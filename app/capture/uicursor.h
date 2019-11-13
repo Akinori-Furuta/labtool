@@ -28,10 +28,6 @@ class UiCursor : public UiAbstractPlotItem
     Q_OBJECT
 public:
 
-    enum Constants {
-        CursorBarHeight = 30
-    };
-
     enum CursorId {
         Trigger = 0,
         Cursor1 = 1,
@@ -55,7 +51,7 @@ public:
     bool isCursorOn(UiCursor::CursorId id);
     void enableCursor(UiCursor::CursorId id, bool enable);
     QMap<CursorId, QString> activeCursors();
-
+    int estimateCursorBarHeight();
 
     
 signals:
@@ -73,7 +69,11 @@ private:
 
     enum PrivConstants {
         CursorWidth = 8,
-        CursorHeight = 8
+        CursorHeight = 8,
+        CursorLabelSpace = 3,
+        CursorBottomSpace = 3,
+        CursorBarMinHeight = 40,
+        CursorClickBand = 4,
     };
 
     bool mCursorOn[NumCursors];
@@ -81,8 +81,8 @@ private:
     CursorId mCursorDrag;
     int mPressXPos;
     int mPressYPos;
+    int mCursorLabelWidth;
     bool mMinWidthSet;
-
     
     CursorId findCursor(const QPoint &pos);
     void paintCursorSymbol(QPainter* painter, int cursorId);

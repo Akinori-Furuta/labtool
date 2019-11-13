@@ -543,14 +543,13 @@ void UiPlot::updateVerticalScrollBar()
 {
     int h = 0;
     int signalAreaHeight = 0;
-
     // calculate total height for all added signals
     foreach(UiAbstractSignal* s, mSignalManager->signalList()) {
         h += s->height();
     }
 
     signalAreaHeight = viewport()->height()-mTimeAxis->height()
-            -UiCursor::CursorBarHeight;
+            - mCursor->estimateCursorBarHeight();
 
     verticalScrollBar()->setRange(0, h-signalAreaHeight);
     verticalScrollBar()->setPageStep(viewport()->height());
