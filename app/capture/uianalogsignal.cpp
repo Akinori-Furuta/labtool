@@ -16,6 +16,7 @@
 #include "uianalogsignal.h"
 
 #include <QDebug>
+#include <QtGlobal>
 #include <QPainter>
 #include <QDoubleSpinBox>
 #include <QRadioButton>
@@ -1115,6 +1116,8 @@ void UiAnalogSignal::paintSignals(QPainter* painter)
     CaptureDevice* device = DeviceManager::instance().activeDevice()
             ->captureDevice();
     int pX = plotX();
+    int wX = width() - pX;
+    int xMax = width() - 1;
 
     for (int i = 0; i < mSignals.size(); i++) {
         UiAnalogSignalPrivate* p = mSignals.at(i);
@@ -1132,8 +1135,8 @@ void UiAnalogSignal::paintSignals(QPainter* painter)
         pen.setStyle(Qt::DashLine);
         painter->setPen(pen);
         if (i > 0) {
-            painter->drawLine(0, i*height()/mSignals.size(), infoWidth(),
-                              i*height()/mSignals.size());
+            painter->drawLine(0, (i * height())/mSignals.size(), infoWidth(),
+                              (i * height())/mSignals.size());
         }
 
         painter->restore();
@@ -1144,90 +1147,99 @@ void UiAnalogSignal::paintSignals(QPainter* painter)
         if (data == NULL) continue;
 
         int rate = device->usedSampleRate();
-        int fromIdx = (int)(mTimeAxis->rangeLower()*rate);
-
-        if (fromIdx >= data->size()) continue;
-        if (fromIdx < 0) fromIdx = 0;
-
         painter->save();
 
-        painter->setClipRect(pX, 0, width()-pX, height());
+        painter->setClipRect(pX, 0, wX, height());
         painter->translate(0, p->mGndPos);
 
         // draw gnd line
         pen.setColor(Configuration::instance().analogGroundColor(id));
         pen.setStyle(Qt::DashLine);
         painter->setPen(pen);
-        painter->drawLine(pX, 0, width(), 0);
+        painter->drawLine(pX, 0, xMax, 0);
+
+        int fromIdx = (int)(mTimeAxis->rangeLower()*rate);
+
+        if (fromIdx >= data->size()) {
+            painter->restore();
+            continue;
+        }
+        fromIdx = qMax(fromIdx, 0);
+        enum {psInit, psNoPrev, psPrevReady} plotState = psInit;
+        double yscale = -(double(mNumPxPerDiv) / p->mSignal->vPerDiv());
+        int    iXPrev;
+        int    iXCurrent;
+        double sumVertCurrent = 0;
+        int    sumVertNum = 1;
+        int    vertCurrent;
+        int    vertPrev;
+        int    vertMax;
+        int    vertMin;
 
         // draw signal
-        pen.setColor(Configuration::instance().analogSignalColor(id));
+        QColor colorLine(Configuration::instance().analogSignalColor(id));
+        QColor colorPhosphor(colorLine);
+        colorPhosphor.setAlpha(160);
+
         pen.setStyle(Qt::SolidLine);
         painter->setPen(pen);
 
-        double from;
-        double to;
-        double yscale = mNumPxPerDiv/p->mSignal->vPerDiv();
+        for (int j = fromIdx; j < data->size(); j++) {
 
-        double fromVal;
-        double toVal;
-
-        double minVal;
-        double maxVal;
-
-        double tOnePixel = mTimeAxis->pixelToTime(1)-mTimeAxis->pixelToTime(0);
-        for (int j = fromIdx+1; j < data->size(); j++) {
-
-            if ((double)(j-fromIdx)/rate < tOnePixel) continue;
-
-            from = mTimeAxis->timeToPixelRelativeRef((double)fromIdx/rate);
-            to = mTimeAxis->timeToPixelRelativeRef((double)j/rate);
+            double realXNew = mTimeAxis->timeToPixelRelativeRef((double)j / rate);
+            int    iXNew = qRound(realXNew);
 
             // no need to draw when signal is out of plot area
-            if (to < 0) continue;
-            if (from > width()) break;
-
-            fromVal = data->at(fromIdx);
-            toVal = data->at(j);
-
-            //
-            // When skipping data due to optimization we just don't draw a line
-            // between the 'from' value and 'to' value. Instead we find the minimum
-            // and maximum values in the dataset between 'from' and 'to' and draw
-            // a line between these values. This gives a more correct view of
-            // the signal.
-            //
-            if (j > fromIdx + 1) {
-                minVal = 999;
-                maxVal = -999;
-                for (int k = fromIdx; k <= j; k++) {
-                    if (data->at(k) < minVal) {
-                        minVal = data->at(k);
-                    }
-
-                    if (data->at(k) > maxVal) {
-                        maxVal = data->at(k);
-                    }
-                }
-
-                if (data->at(fromIdx) < data->at(j)) {
-                    fromVal = minVal;
-                    toVal = maxVal;
-                }
-                else {
-                    fromVal = maxVal;
-                    toVal = minVal;
-                }
-
-
+            if (iXNew < 0) {
+                /* sample is out of view area. */
+                continue;
             }
 
-            painter->drawLine(from,
-                              yscale * (-fromVal),
-                              to,
-                              yscale * (-toVal));
+            double realVertNew = yscale * data->at(j);
+            int vertNew = qRound(realVertNew);
 
-            fromIdx = j;
+            switch (plotState) {
+            case psInit:
+                sumVertCurrent = realVertNew;
+                sumVertNum = 1;
+                vertMax = vertNew;
+                vertMin = vertNew;
+                iXCurrent = iXNew;
+                plotState = psNoPrev;
+                continue;
+            default:
+                // Do nothing here.
+                break;
+            }
+            if (iXCurrent == iXNew) {
+                sumVertCurrent += realVertNew;
+                sumVertNum++;
+                vertMax = qMax(vertMax, vertNew);
+                vertMin = qMin(vertMin, vertNew);
+                continue;
+            }
+            if (vertMax != vertMin) {
+                pen.setColor(colorPhosphor);
+                painter->setPen(pen);
+                painter->drawLine(iXCurrent, vertMin, iXCurrent, vertMax);
+            }
+            vertCurrent = qRound(sumVertCurrent / sumVertNum);
+            if (plotState == psPrevReady) {
+                pen.setColor(colorLine);
+                painter->setPen(pen);
+                painter->drawLine(iXPrev, vertPrev, iXCurrent, vertCurrent);
+            }
+            if (iXCurrent >= xMax) {
+                break;
+            }
+            iXPrev = iXCurrent;
+            vertPrev = vertCurrent;
+            sumVertCurrent = realVertNew;
+            sumVertNum = 1;
+            vertMax = vertNew;
+            vertMin = vertNew;
+            iXCurrent = iXNew;
+            plotState = psPrevReady;
         }
 
         painter->restore();
@@ -1250,7 +1262,7 @@ void UiAnalogSignal::paintTriggerLevel(QPainter* painter)
 
         if(p->mAnalogTrigger->state() != AnalogSignal::AnalogTriggerNone) {
 
-            painter->setClipRect(plotX(), 0, width()-plotX(), height());
+            painter->setClipRect(plotX(), 0, width() - plotX(), height());
             painter->translate(0, p->mGndPos);
 
             QPen pen = painter->pen();
