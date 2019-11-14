@@ -1179,7 +1179,6 @@ void UiAnalogSignal::paintSignals(QPainter* painter)
         // draw signal
         QColor colorLine(Configuration::instance().analogSignalColor(id));
         QColor colorPhosphor(colorLine);
-        colorPhosphor.setAlpha(160);
 
         pen.setStyle(Qt::SolidLine);
         painter->setPen(pen);
@@ -1219,6 +1218,11 @@ void UiAnalogSignal::paintSignals(QPainter* painter)
                 continue;
             }
             if (vertMax != vertMin) {
+                int vertDiff = vertMax - vertMin;
+                int alpha = (sumVertNum * 128) / vertDiff;
+                alpha = qMin(alpha, 255);
+                alpha = qMax(alpha, 64);
+                colorPhosphor.setAlpha(alpha);
                 pen.setColor(colorPhosphor);
                 painter->setPen(pen);
                 painter->drawLine(iXCurrent, vertMin, iXCurrent, vertMax);
