@@ -426,6 +426,27 @@ void UiMainWindow::saveSettings()
     saveProject(mProjectFile);
 }
 
+QString UiMainWindow::appendFileExtension(QString pathName, QString extension)
+{
+    if (pathName.endsWith(extension, Qt::CaseInsensitive)) {
+        return pathName;
+    }
+    if (pathName.endsWith(".", Qt::CaseSensitive)) {
+        return pathName;
+    }
+    int indexDot = pathName.lastIndexOf('.');
+    int indexSlash = pathName.lastIndexOf('/');
+#if (defined(_WIN32) || defined(_WIN64))
+    if (indexSlash < 0) {
+        indexSlash = pathName.lastIndexOf('\\');
+    }
+#endif /* (defined(_WIN32) || defined(_WIN64)) */
+    if ((indexDot >= 0) && (indexSlash < indexDot)) {
+        return pathName;
+    }
+    return pathName + extension;
+}
+
 /*!
     Load project settings from persitent storage.
 */
@@ -722,6 +743,7 @@ void UiMainWindow::newProject()
                 "Projects (*.prj)");
 
     if (!name.isNull() && !name.isEmpty()) {
+        name = appendFileExtension(name, Configuration::ProjectFileExt);
         setActiveProjectFile(name);
 
         mCapture->resetProject();
@@ -770,6 +792,7 @@ void UiMainWindow::saveProjectAs()
                 "Projects (*.prj)");
 
     if (!name.isNull() && !name.isEmpty()) {
+        name = appendFileExtension(name, Configuration::ProjectFileExt);
         setActiveProjectFile(name);
         saveProject(name);
     }

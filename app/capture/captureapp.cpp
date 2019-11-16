@@ -135,9 +135,13 @@ void CaptureApp::openProject(QSettings &project)
     QString projectFile = project.fileName();
 
     // open file used for signal data
-    QString binDataFile = projectFile.replace(
-                Configuration::ProjectFileExt,
-                Configuration::ProjectBinFileExt);
+    QString binDataFile = projectFile;
+    binDataFile.replace(Configuration::ProjectFileExt,
+        Configuration::ProjectBinFileExt, Qt::CaseInsensitive);
+    if (binDataFile == projectFile) {
+        /* projectFile has no extension. */
+        binDataFile += Configuration::ProjectBinFileExt;
+    }
     QFile file(binDataFile);
     file.open(QIODevice::ReadOnly);
     QDataStream in(&file);
@@ -231,10 +235,14 @@ void CaptureApp::saveProject(QSettings &project)
     if (captureDevice != NULL) {
 
         // open file and stream to be used for signal data
-        QString binDataFile = projectFile.replace(
-                    Configuration::ProjectFileExt,
-                    Configuration::ProjectBinFileExt);
+        QString binDataFile = projectFile;
+        binDataFile.replace(Configuration::ProjectFileExt,
+            Configuration::ProjectBinFileExt, Qt::CaseInsensitive);
 
+        if (binDataFile == projectFile) {
+            /* projectFile has no extension. */
+            binDataFile += Configuration::ProjectBinFileExt;
+        }
         QFile file(binDataFile);
         file.open(QIODevice::WriteOnly);
         QDataStream out(&file);

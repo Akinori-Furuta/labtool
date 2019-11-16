@@ -84,6 +84,7 @@ private:
     void setActiveProjectFile(QString file);
 
     bool warnedAboutActiveState(QString action);
+    QString appendFileExtension(QString pathName, QString extension);
 
 private slots:
     void handleTabChanged(int index);
