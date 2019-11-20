@@ -85,6 +85,7 @@ private:
 
     bool warnedAboutActiveState(QString action);
     QString appendFileExtension(QString pathName, QString extension);
+    int mAnalogHeightConf;
 
 private slots:
     void handleTabChanged(int index);

@@ -35,6 +35,13 @@ public:
     static const QString ProjectFileExt;
     static const QString ProjectBinFileExt;
 
+    enum {
+        analogHeightMin = 200,
+        analogHeightMax = 536,
+        analogHeightDef = 200,
+        digitalHeightDef = 40,
+    };
+
     QList<QString> colorSchemes();
     QString activeColorScheme();
     void loadColorScheme(QString scheme);
@@ -66,6 +73,8 @@ public:
     QColor outsidePlotColor();
     QIcon  closeIcon();
     QIcon  configureIcon();
+    int    analogHeight();
+    void   setAnalogHeight(int height);
 
     void loadLightScheme();
     void loadDarkScheme();
@@ -101,6 +110,7 @@ private:
 
     QIcon mCloseIcon;
     QIcon mConfigureIcon;
+    int   mAnalogHeight;
 };
 
 #endif // CONFIGURATION_H

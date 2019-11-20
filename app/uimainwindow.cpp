@@ -16,6 +16,7 @@
 #include "uimainwindow.h"
 
 #include <QDebug>
+#include <QtGlobal>
 #include <QCoreApplication>
 #include <QApplication>
 #include <QDesktopWidget>
@@ -33,7 +34,7 @@
 
 #include "common/configuration.h"
 #include "device/devicemanager.h"
-
+#include "capture/uianalogsignal.h"
 
 /*!
     \class UiMainWindow
@@ -421,6 +422,7 @@ void UiMainWindow::saveSettings()
 
     settings.setValue("mainwindow/size", size());
     settings.setValue("mainwindow/pos", pos());
+    settings.setValue("mainwindow/analogHeight", mAnalogHeightConf);
     settings.setValue("mainwindow/lastproject", mProjectFile);
 
     saveProject(mProjectFile);
@@ -457,13 +459,11 @@ void UiMainWindow::loadSettings()
 
     QDesktopWidget* desktop = QApplication::desktop();
     QRect desktopGeom = desktop->geometry();
+    QSize desktopFitSize = desktopGeom.size()*(qreal)(7.0/8.0);
 
-    QPoint pos = settings.value("mainwindow/pos", QPoint(0,0)).toPoint();
-    QSize winSize = settings.value("mainwindow/size", QSize(600,400)).toSize();
-
-    // move to 0,0 if outside of desktop area
-    if (!desktopGeom.contains(pos, true)) {
-        pos = QPoint(0,0);
+    QSize winSize = settings.value("mainwindow/size", QSize(-1,-1)).toSize();
+    if ((winSize.width() <= 0) || (winSize.height() <= 0)) {
+        winSize = desktopFitSize;
     }
 
     // too small window -> increase size
@@ -471,6 +471,47 @@ void UiMainWindow::loadSettings()
         winSize.setWidth(600);
         winSize.setHeight(400);
     }
+
+    QPoint pos = settings.value("mainwindow/pos", QPoint(-1,-1)).toPoint();
+    if ((pos.x() <= 0) || (pos.y() <= 0) || !desktopGeom.contains(pos, true)) {
+        QSize aroundSize = desktopGeom.size() - winSize;
+        if ((aroundSize.width() <= 0) || (aroundSize.height() <= 0)) {
+            aroundSize = desktopGeom.size() - desktopFitSize;
+        }
+        // move to center if pos is placed into outside of desktop area.
+        pos = QPoint(desktopGeom.left() + aroundSize.width() / 2, desktopGeom.top() + aroundSize.height() / 2);
+    }
+
+    /* labtoolcapturedevice.cpp and labtoolcapturedevice.h says that
+     * the number of digital channels are 11.
+     */
+    int digitalSignalsHeight = (int)(Configuration::digitalHeightDef) * 14;
+    int menusHeight = 80 /* menu and etc. area approx value */;
+    int analogHeightFit = desktopFitSize.height()
+        - digitalSignalsHeight /* digital signals and analyzers */
+        - menusHeight;
+    analogHeightFit = (analogHeightFit / (int)UiAnalogSignal::NumDivs) * (int)UiAnalogSignal::NumDivs;
+    analogHeightFit = qMax(analogHeightFit, (int)(Configuration::analogHeightMin));
+    analogHeightFit = qMin(analogHeightFit, (int)(Configuration::analogHeightMax));
+    int analogHeightMaxLimit = desktopGeom.height();
+
+    int analogHeight = analogHeightFit;
+
+    int analogHeightConf = settings.value("mainwindow/analogHeight", -1).toInt();
+    mAnalogHeightConf = analogHeightConf;
+
+    if (analogHeightConf >= 0) {
+        /* Configured manually. */
+        analogHeightConf = qMax(analogHeightConf, (int)(Configuration::analogHeightMin));
+        if (analogHeightConf >= analogHeightMaxLimit) {
+            /* Too large height, fit to prefered height. */
+            analogHeightConf = qMax(analogHeightFit, (int)(Configuration::analogHeightMin));
+        }
+        analogHeight = analogHeightConf;
+    }
+    printf("analogHeight=%d\n", analogHeight);
+    Configuration::instance().setAnalogHeight(analogHeight);
+
     resize(winSize);
     move(pos);
 

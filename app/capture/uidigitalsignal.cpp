@@ -74,7 +74,7 @@ UiDigitalSignal::UiDigitalSignal(DigitalSignal* s, QWidget *parent) :
     mTrigger->show();
     connect(mTrigger, SIGNAL(triggerSet()), this, SLOT(handleTriggerChanged()));
 
-    setFixedHeight(40);
+    setFixedHeight((int)(Configuration::digitalHeightDef));
 
     setMouseTracking(true);
 }

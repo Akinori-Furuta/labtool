@@ -1047,7 +1047,7 @@ void UiAnalogSignal::paintDivLines(QPainter* painter)
     painter->setPen(pen);
 
     int pX = plotX();
-    for (int i = mNumPxPerDiv; i < height(); i+= mNumPxPerDiv) {
+    for (int i = 0; i < height(); i+= mNumPxPerDiv) {
         painter->drawLine(pX, i, width(), i);
     }
     painter->restore();
@@ -1311,7 +1311,6 @@ void UiAnalogSignal::doLayout()
 {
 
     int x = InfoMarginLeft;
-    int y = InfoMarginTop;
 
     // calculate required height for this widget
     int wHeight = InfoMarginTop+InfoMarginBottom;
@@ -1324,16 +1323,15 @@ void UiAnalogSignal::doLayout()
         wHeight += p->minimumHeight();
     }
 
-    if (wHeight < 200) {
-        wHeight = 200;
+    int analogHeight = Configuration::instance().analogHeight();
+    if (wHeight < analogHeight) {
+        wHeight = analogHeight;
     }
 
     int areaHeight = 0;
 
     if (mSignals.size() > 0) {
-        areaHeight = (wHeight-InfoMarginTop-InfoMarginBottom
-                      -(mSignals.size()-1)*DistanceBetweenArea)
-                / mSignals.size();
+        areaHeight = wHeight / mSignals.size();
     }
 
     int oldHeight = height();
@@ -1343,16 +1341,17 @@ void UiAnalogSignal::doLayout()
         emit sizeChanged();
     }
 
+    int yVert = 0;
     for (int i = 0; i < mSignals.size(); i++) {
         UiAnalogSignalPrivate* p = mSignals.at(i);
 
         int h = areaHeight;
 
-        p->setGeometry(x, y,
+        p->setGeometry(x, yVert,
                        infoWidth()-InfoMarginLeft-InfoMarginRight,
                        areaHeight);
 
-        y += h + DistanceBetweenArea;
+        yVert += h;
     }
 
     mNumPxPerDiv = height()/NumDivs;

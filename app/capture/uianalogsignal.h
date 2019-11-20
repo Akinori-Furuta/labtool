@@ -36,7 +36,8 @@ class UiAnalogSignal : public UiAbstractSignal
 public:
 
     enum Constants {
-        MaxNumSignals = 4
+        MaxNumSignals = 4,
+        NumDivs = 12,
     };
 
     explicit UiAnalogSignal(QWidget *parent = 0);
@@ -75,7 +76,6 @@ private:
 
 
     enum PrivateConstants {
-        NumDivs = 10,
         DistanceBetweenArea = 4,
         SignalIdMarginRight = 10
     };

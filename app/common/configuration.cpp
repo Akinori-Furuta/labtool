@@ -351,6 +351,24 @@ QIcon Configuration::closeIcon()
 
 QIcon Configuration::configureIcon()
 {	return mConfigureIcon;
+void Configuration::setAnalogHeight(int height)
+{
+    if ((height >= analogHeightMin) && (height <= analogHeightMax)) {
+        mAnalogHeight = height;
+        return;
+    }
+    mAnalogHeight = analogHeightDef;
+}
+
+int Configuration::analogHeight()
+{
+    int result;
+    result = mAnalogHeight;
+
+    if (result <= 0) {
+        result = analogHeightDef;
+    }
+    return result;
 }
 
 /*!
