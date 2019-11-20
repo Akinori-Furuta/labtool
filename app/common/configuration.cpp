@@ -346,11 +346,15 @@ QColor Configuration::outsidePlotColor()
 }
 
 QIcon Configuration::closeIcon()
-{	return mCloseIcon;
+{
+     return mCloseIcon;
 }
 
 QIcon Configuration::configureIcon()
-{	return mConfigureIcon;
+{
+     return mConfigureIcon;
+}
+
 void Configuration::setAnalogHeight(int height)
 {
     if ((height >= analogHeightMin) && (height <= analogHeightMax)) {
