@@ -509,7 +509,6 @@ void UiMainWindow::loadSettings()
         }
         analogHeight = analogHeightConf;
     }
-    printf("analogHeight=%d\n", analogHeight);
     Configuration::instance().setAnalogHeight(analogHeight);
 
     resize(winSize);
