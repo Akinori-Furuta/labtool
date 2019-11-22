@@ -485,7 +485,7 @@ void UiMainWindow::loadSettings()
     /* labtoolcapturedevice.cpp and labtoolcapturedevice.h says that
      * the number of digital channels are 11.
      */
-    int digitalSignalsHeight = (int)(Configuration::digitalHeightDef) * 14;
+    int digitalSignalsHeight = (int)(Configuration::digitalHeightDef) * 13;
     int menusHeight = 80 /* menu and etc. area approx value */;
     int analogHeightFit = desktopFitSize.height()
         - digitalSignalsHeight /* digital signals and analyzers */
