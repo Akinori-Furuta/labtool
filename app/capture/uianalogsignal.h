@@ -76,7 +76,6 @@ private:
 
 
     enum PrivateConstants {
-        DistanceBetweenArea = 4,
         SignalIdMarginRight = 10
     };
 

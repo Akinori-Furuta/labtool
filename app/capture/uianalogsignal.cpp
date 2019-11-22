@@ -477,7 +477,15 @@ int UiAnalogSignalPrivate::minimumWidth()
 int UiAnalogSignalPrivate::minimumHeight()
 {
     QFontMetrics fm(mIdLbl->font());
-    return mDisableBtn->height() + 5 * fm.height();
+    int hSignal = mDisableBtn->height() + 5 * fm.height();
+    /* Note: "/ 2" is derivered from the number of analog signals.
+     * It is more better using the number of analog signals get from
+     * capture device.
+     */
+    hSignal += UiAbstractSignal::InfoMarginTop + UiAbstractSignal::InfoMarginBottom;
+    int divsH2 = qMax(UiAnalogSignal::NumDivs / 2, 1);
+    hSignal = ((hSignal + divsH2 - 1) / divsH2) * divsH2;
+    return hSignal;
 }
 
 
@@ -1318,13 +1326,10 @@ void UiAnalogSignal::doLayout()
     int x = InfoMarginLeft;
 
     // calculate required height for this widget
-    int wHeight = InfoMarginTop+InfoMarginBottom;
+    int wHeight = 0;
     for (int i = 0; i < mSignals.size(); i++) {
         UiAnalogSignalPrivate* p = mSignals.at(i);
 
-        if (i > 0) {
-            wHeight += DistanceBetweenArea;
-        }
         wHeight += p->minimumHeight();
     }
 
