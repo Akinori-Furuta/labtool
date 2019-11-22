@@ -51,6 +51,7 @@ protected:
     virtual int calcMinimumWidth() = 0;
     QRect infoContentRect();
     virtual void paintBackground(QPainter* painter);
+    virtual void changeEvent(QEvent *event);
 
 protected slots:
     virtual void configure(QWidget* parent) {(void)parent;/* nothing to configure by default */}

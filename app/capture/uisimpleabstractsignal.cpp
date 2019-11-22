@@ -148,6 +148,12 @@ void UiSimpleAbstractSignal::mousePressEvent(QMouseEvent* event)
     QWidget::mousePressEvent(event);
 }
 
+void UiSimpleAbstractSignal::changeEvent(QEvent *event)
+{
+    UiAbstractSignal::changeEvent(event);
+    doLayout();
+}
+
 /*!
     Layouts the child widgets
 */

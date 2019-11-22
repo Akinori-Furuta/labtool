@@ -308,6 +308,13 @@ void UiDigitalSignal::showEvent(QShowEvent* event)
     setMinimumInfoWidth(calcMinimumWidth());
 }
 
+void UiDigitalSignal::changeEvent(QEvent *event)
+{
+    UiSimpleAbstractSignal::changeEvent(event);
+    doLayout();
+    setMinimumInfoWidth(calcMinimumWidth());
+}
+
 /*!
     Paint the signal data.
 */
@@ -432,27 +439,26 @@ void UiDigitalSignal::doLayout()
 
     QRect r = infoContentRect();
     int y = r.top();
+    QFontMetrics fm(mIdLbl->font());
 
     mColorLbl->move(r.left(), y);
-    QFontMetrics fm(mColorLbl->font());
     int wColorLbl = fm.width(mColorLbl->text());
-    mColorLbl->resize(wColorLbl, fm.height() + 3);
-    int x = mColorLbl->pos().x()+ wColorLbl + SignalIdMarginRight;
+    int hColorLbl = fm.height();
+    mColorLbl->resize(wColorLbl, hColorLbl);
+    int x = r.left() + wColorLbl + SignalIdMarginRight;
+    int wIdLbl = fm.width(mIdLbl->text());
     mIdLbl->move(x, y);
-    int wIdLbl = fm.width("DW");
+    mIdLbl->resize(wIdLbl, hColorLbl);
     x += wIdLbl + SignalIdMarginRight;
-    int xNameLbl = x;
     mNameLbl->move(x, y);
-    mEditName->move(x, y);
+    mEditName->move(x, y - 2);
 
     x = r.right()-mTrigger->width()/*-5*/;
     mTrigger->move(x, y);
-    int wNameLbl = x - xNameLbl;
-    int hNameLbl = fm.height() + 4;
-    mIdLbl->resize(wIdLbl, hNameLbl);
-    mNameLbl->resize(wNameLbl, hNameLbl);
-    mEditName->resize(wNameLbl, hNameLbl);
-    setMinimumHeight(y + hNameLbl);
+    int wNameLbl = fm.width(mNameLbl->text()) + wColorLbl /* Approx margin */;
+    mNameLbl->resize(wNameLbl, hColorLbl);
+    mEditName->resize(wNameLbl + wColorLbl, hColorLbl + 4);
+    setMinimumHeight(y + hColorLbl + 4);
 }
 
 /*!
@@ -461,7 +467,7 @@ void UiDigitalSignal::doLayout()
 int UiDigitalSignal::calcMinimumWidth()
 {
 
-    int w = mNameLbl->pos().x() + mNameLbl->minimumSizeHint().width();
+    int w = mNameLbl->pos().x() + mNameLbl->width();
     if (mEditName->isVisible()) {
         w = mEditName->pos().x() + mEditName->width();
     }

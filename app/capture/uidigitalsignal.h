@@ -49,6 +49,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event);
     void leaveEvent(QEvent* event);
     void showEvent(QShowEvent* event);
+    virtual void changeEvent(QEvent *event);
 
 
 private:
