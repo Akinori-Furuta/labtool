@@ -1219,9 +1219,9 @@ void UiAnalogSignal::paintSignals(QPainter* painter)
             }
             if (vertMax != vertMin) {
                 int vertDiff = vertMax - vertMin;
-                int alpha = (sumVertNum * 128) / vertDiff;
+                int alpha = (sumVertNum * 16) / vertDiff;
                 alpha = qMin(alpha, 255);
-                alpha = qMax(alpha, 64);
+                alpha = qMax(alpha, 32);
                 colorPhosphor.setAlpha(alpha);
                 pen.setColor(colorPhosphor);
                 painter->setPen(pen);
