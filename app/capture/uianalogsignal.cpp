@@ -344,7 +344,7 @@ void UiAnalogSignalPrivate::setGeometry(int x, int y, int w, int h)
     mAnalogTrigger->resize(mAnalogTrigger->width(), h-mDisableBtn->height()-4);
     wy = wy+(h-mDisableBtn->height())/2 - mAnalogTrigger->height()/2;
     int xAnalogTrigger = x+w-mAnalogTrigger->width();
-    int wName = xAnalogTrigger - wx;
+    int wName = fm.width(mName->text()) + widthId;
     int hIdLbl = fm.height() + 4;
     mAnalogTrigger->move(xAnalogTrigger, wy);
     mIdLbl->resize(widthId, hIdLbl);
@@ -355,18 +355,22 @@ void UiAnalogSignalPrivate::setGeometry(int x, int y, int w, int h)
     if (mEditName->isVisible()) {
         wy = mEditName->pos().y() + mEditName->height() + 7;
     }
-
+    int wVPerDiv = fm.width(mVPerDivBox->text()) + widthId * 2 /* Approx Value */;
+    mVPerDivBox->resize(wVPerDiv, fm.height() + 4);
     wx = w/2-mVPerDivBox->width()/2;
     mVPerDivBox->move(wx, wy);
 
     // signal color is painted below mVPerDivBox (see paintInfo)
     wy = mVPerDivBox->pos().y()+mVPerDivBox->height()+3+5+5;
 
+    int wDcBtn = fm.width("DC") + widthId /* Approx Value. */;
+    mDcBtn->resize(wDcBtn, fm.height());
+    mAcBtn->resize(wDcBtn, fm.height());
     mDcBtn->move(w/2-mDcBtn->width()-2, wy);
     mAcBtn->move(w/2+2, wy);
 
     if (mGndPos == -1) {
-        mGndPos = y + h/2;
+        mGndPos = (double)y + (double)h/2;
     }
 }
 
@@ -452,11 +456,12 @@ int UiAnalogSignalPrivate::minimumWidth()
     int w = 0;
 
     // check name/edit fiels
-    w = mName->pos().x() + mName->minimumSizeHint().width();
+    w = mName->pos().x() + mName->width();
     if (mEditName->isVisible()) {
         w = mEditName->pos().x() + mEditName->width();
     }
-
+    int w3 = mAcBtn->width() + mDcBtn->width() + 4;
+    w = qMax(w, w3);
     int w2 = mIdLbl->pos().x()+mIdLbl->width()+mVPerDivBox->width();
     if (w2 > w) w = w2;
 
