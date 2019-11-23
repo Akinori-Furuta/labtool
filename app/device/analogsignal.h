@@ -94,6 +94,12 @@ public:
 
     void setReconfigureListener(ReconfigureListener* listener);
 
+    /* Currentry, invert_factor takes following two values,
+     *  1.0: Non Invert (normal mode).
+     * -1.0: Invert.
+     */
+    double invertSignal() {return mInvertSignal;};
+    void setInvertSignal(double invert_factor) {mInvertSignal = invert_factor;};
 
 private:
     AnalogUsage mUsage;
@@ -116,7 +122,7 @@ private:
     AnalogWaveform mWaveform;
     int mFrequency;
     double mAmplitude;
-
+    double mInvertSignal;
     
 };
 

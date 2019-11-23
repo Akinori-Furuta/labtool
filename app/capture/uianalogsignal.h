@@ -71,6 +71,7 @@ private slots:
     void changeTriggers();
     void handleTriggerLevelChanged();
     void handleCouplingChanged(QAbstractButton* btn);
+    void handleInvertSignalChanged(int state);
 
 private:
 

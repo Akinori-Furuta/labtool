@@ -21,6 +21,7 @@
 #include <QDoubleSpinBox>
 #include <QRadioButton>
 #include <QButtonGroup>
+#include <QCheckBox>
 
 #include "common/configuration.h"
 #include "uianalogtrigger.h"
@@ -81,6 +82,9 @@ public:
     /*! Groups coupling buttons */
     QButtonGroup* mCouplingGroup;
 
+    /*! Groups coupling buttons */
+    QCheckBox* mInvertSignal;
+
     /*! Holds the vertical position for 'ground' for this signal */
     double mGndPos;
     /*! The valid geometry of this signal */
@@ -116,6 +120,7 @@ UiAnalogSignalPrivate::UiAnalogSignalPrivate()
     mDcBtn         = NULL;
     mAcBtn         = NULL;
     mCouplingGroup = NULL;
+    mInvertSignal  = NULL;
     mGndPos        = 0;
 }
 
@@ -152,6 +157,12 @@ UiAnalogSignalPrivate::~UiAnalogSignalPrivate()
     delete mAcBtn;
 
     delete mCouplingGroup;
+
+    if (mInvertSignal) {
+        mInvertSignal->close();
+        delete mInvertSignal;
+        mInvertSignal = NULL;
+    }
 }
 
 /*!
@@ -178,6 +189,31 @@ static const char DcAcButtonStyleSheet[] =
 "   border-style: inset;"
 "   background-color: #10ff00;"
 "}";
+
+/*!
+    Invert CheckBox style.
+*/
+static const char InvertCheckBoxStyleSheet[] =
+"   ::indicator {"
+"   width: 12px;"
+"   height: 12px;"
+"   border-width: 2px;"
+"   border-style: solid;"
+"   background-color: #202020;"
+"}"
+"   ::indicator:unchecked {"
+"   border-width: 2px;"
+"   border-color: #205020;"
+"   border-style: outset;"
+"   background-color: #809070;"
+"}"
+"   ::indicator:checked {"
+"   border-width: 2px;"
+"   border-color: #308020;"
+"   border-style: inset;"
+"   background-color: #10ff00;"
+"}";
+
 
 /*!
     Initialize and setup UI elements related to the analog signal \a signal.
@@ -277,6 +313,13 @@ void UiAnalogSignalPrivate::setup(AnalogSignal* signal, UiAnalogSignal* parent)
     parent->connect(mCouplingGroup, SIGNAL(buttonClicked(QAbstractButton*)),
             parent, SLOT(handleCouplingChanged(QAbstractButton*)));
 
+    mInvertSignal = new QCheckBox("Invert", parent);
+    mInvertSignal->setChecked((bool)(mSignal->invertSignal() < 0.0));
+    mInvertSignal->show();
+    mInvertSignal->setStyleSheet(InvertCheckBoxStyleSheet);
+    parent->connect(mInvertSignal, SIGNAL(stateChanged(int)),
+                    parent, SLOT(handleInvertSignalChanged(int)));
+
     setLightDark();
     mGndPos = -1;
 }
@@ -366,9 +409,11 @@ void UiAnalogSignalPrivate::setGeometry(int x, int y, int w, int h)
     int wDcBtn = fm.width("DC") + widthId /* Approx Value. */;
     mDcBtn->resize(wDcBtn, fm.height());
     mAcBtn->resize(wDcBtn, fm.height());
-    mDcBtn->move(w/2-mDcBtn->width()-2, wy);
-    mAcBtn->move(w/2+2, wy);
-
+    mDcBtn->move(wx, wy);
+    mAcBtn->move(wx + wVPerDiv / 2, wy);
+    wy += fm.height() + 3;
+    mInvertSignal->move(wx, wy);
+    mInvertSignal->resize(wVPerDiv, fm.height());
     if (mGndPos == -1) {
         mGndPos = (double)y + (double)h/2;
     }
@@ -418,6 +463,7 @@ void UiAnalogSignalPrivate::setLightDark()
     mDcBtn->setFont(mIdLbl->font());
     mAcBtn->setFont(mIdLbl->font());
     mDisableBtn->setIcon(Configuration::instance().closeIcon());
+    mInvertSignal->setPalette(palette);
 }
 
 /*!
@@ -853,6 +899,27 @@ void UiAnalogSignal::handleTriggerLevelChanged()
 }
 
 /*!
+    Called when the Invert Signal has been changed.
+*/
+void UiAnalogSignal::handleInvertSignalChanged(int state)
+{
+    (void) state /* arg(s) used. */;
+    QObject* o = QObject::sender();
+    for (int i = 0; i < mSignals.size(); i++) {
+        UiAnalogSignalPrivate* p = mSignals.at(i);
+
+        if (p->mInvertSignal == o) {
+            int inv = p->mInvertSignal->checkState();
+            p->mSignal->setInvertSignal((inv == (int)(Qt::Unchecked)) ? 1.0 : -1.0);
+            break;
+        }
+
+    }
+
+    update();
+}
+
+/*!
     Called when the coupling setting has been changed.
 */
 void UiAnalogSignal::handleCouplingChanged(QAbstractButton* btn)
@@ -1097,12 +1164,12 @@ void UiAnalogSignal::paintSignalValue(QPainter* painter, double time)
         UiAnalogSignalPrivate* p = mSignals.at(i);
 
         if (intersect[i].x() != -1) {
-
-            double yPx = (mNumPxPerDiv/p->mSignal->vPerDiv())
+            double inv = p->mSignal->invertSignal();
+            double yPx = inv*(mNumPxPerDiv/p->mSignal->vPerDiv())
                     *(-intersect[i].y()) + p->mGndPos;
 
             QString voltageLevel =
-                    QString::number(intersect[i].y(), 'f', 2) + " V";
+                    QString::number(intersect[i].y(), 'f', 2) + " V" + (inv < 0.0 ? " (inv)" : "");
 
             QPen pen = painter->pen();
             pen.setColor(Configuration::instance().textColor());
@@ -1179,7 +1246,7 @@ void UiAnalogSignal::paintSignals(QPainter* painter)
         }
         fromIdx = qMax(fromIdx, 0);
         enum {psInit, psNoPrev, psPrevReady} plotState = psInit;
-        double yscale = -(double(mNumPxPerDiv) / p->mSignal->vPerDiv());
+        double yscale = -((double(mNumPxPerDiv) * p->mSignal->invertSignal()) / p->mSignal->vPerDiv());
         int    iXPrev;
         int    iXCurrent;
         double sumVertCurrent = 0;

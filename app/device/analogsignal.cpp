@@ -111,6 +111,7 @@ AnalogSignal::AnalogSignal()
     mFrequency = 10000;
     mWaveform  = AnalogSignal::WaveformSine;
     mAmplitude = 3;
+    mInvertSignal = 1.0;
 }
 
 /*!
@@ -135,6 +136,7 @@ AnalogSignal::AnalogSignal(AnalogUsage usage, int id)
     mFrequency = 10000;
     mWaveform  = AnalogSignal::WaveformSine;
     mAmplitude = 3;
+    mInvertSignal = 1.0;
 }
 
 /*!
@@ -151,7 +153,8 @@ bool AnalogSignal::operator==(const AnalogSignal &other)
             mTriggerLevel == other.mTriggerLevel &&
             mFrequency == other.mFrequency &&
             mWaveform == other.mWaveform &&
-            mAmplitude == other.mAmplitude);
+            mAmplitude == other.mAmplitude &&
+            mInvertSignal == mInvertSignal);
 
 }
 
@@ -178,6 +181,7 @@ AnalogSignal& AnalogSignal::operator=(const AnalogSignal &other)
     mFrequency = other.mFrequency;
     mWaveform = other.mWaveform;
     mAmplitude = other.mAmplitude;
+    mInvertSignal = other.mInvertSignal;
     mUsage = other.mUsage;
     mReconfigureListener = other.mReconfigureListener;
 
@@ -361,7 +365,8 @@ QString AnalogSignal::toSettingsString()
         str.append(QString("%1;").arg(mVPerDiv));
         str.append(QString("%1;").arg(mTriggerState));
         str.append(QString("%1;").arg(mTriggerLevel));
-        str.append(QString("%1").arg(mCoupling));
+        str.append(QString("%1;").arg(mCoupling));
+        str.append(QString("%1").arg(mInvertSignal));
     }
     else {
         str.append(QString("%1;").arg(mWaveform));
@@ -393,7 +398,7 @@ AnalogSignal AnalogSignal::fromSettingsString(QString& s)
         // type;usage;id;name;
 
         // -- capture fields
-        // vPerDiv;triggerState;triggerLevel;coupling
+        // vPerDiv;triggerState;triggerLevel;coupling;invertSignal
 
         // -- generate fields
         // waveform;frequency;amplitude
@@ -448,6 +453,12 @@ AnalogSignal AnalogSignal::fromSettingsString(QString& s)
             AnalogSignal::AnalogCoupling coupling
                     = (AnalogSignal::AnalogCoupling)c;
 
+            double invert_signal = 1.0;
+            if (list.size() >= 9) {
+                /* There is 9th (index == 8) parameter, it's invertSignal. */
+                invert_signal = list.at(8).toDouble(&ok);
+                if (!ok) break;
+            }
 
             tmp.mUsage = usage;
             tmp.mId = id;
@@ -456,7 +467,7 @@ AnalogSignal AnalogSignal::fromSettingsString(QString& s)
             tmp.mTriggerState = trigger;
             tmp.mTriggerLevel = level;
             tmp.mCoupling = coupling;
-
+            tmp.mInvertSignal = invert_signal;
         }
         else {
 
