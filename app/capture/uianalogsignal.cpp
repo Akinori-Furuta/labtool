@@ -313,6 +313,7 @@ void UiAnalogSignalPrivate::setup(AnalogSignal* signal, UiAnalogSignal* parent)
     parent->connect(mCouplingGroup, SIGNAL(buttonClicked(QAbstractButton*)),
             parent, SLOT(handleCouplingChanged(QAbstractButton*)));
 
+    // Deallocation: Destructor
     mInvertSignal = new QCheckBox("Invert", parent);
     mInvertSignal->setChecked((bool)(mSignal->invertSignal() < 0.0));
     mInvertSignal->show();
