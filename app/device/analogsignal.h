@@ -94,7 +94,7 @@ public:
 
     void setReconfigureListener(ReconfigureListener* listener);
 
-    /* Currentry, invert_factor takes following two values,
+    /*! Currentry, invert_factor takes following two values,
      *  1.0: Non Invert (normal mode).
      * -1.0: Invert.
      */
