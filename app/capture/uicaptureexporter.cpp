@@ -162,6 +162,13 @@ QWidget* UiCaptureExporter::createFormatCsv()
     rowBox->addItem("One row per change", 1);
     l->addRow(tr("Row:"), rowBox);
 
+    // Deallocation: "Qt Object trees" (See UiMainWindow)
+    QComboBox* invertBox = new QComboBox(w);
+    invertBox->setObjectName("csvInvert");
+    invertBox->addItem("Keep sampled data polarity", 0);
+    invertBox->addItem("Invert data as plot settings", 1);
+    l->addRow(tr("Invert:"), invertBox);
+
     w->setLayout(l);
 
 
@@ -176,6 +183,12 @@ void UiCaptureExporter::exportToCsv(QWidget* w)
     bool delimAsComma = true;
     bool sampleAsTime = true;
     bool rowEachSample = true;
+    bool keepPolarity = true;
+
+    typedef struct {
+        QVector<double>* data;
+        double invert;
+    } AnalogVectorInvert;
 
     do {
         QComboBox* box = w->findChild<QComboBox*>("csvDelim");
@@ -190,6 +203,8 @@ void UiCaptureExporter::exportToCsv(QWidget* w)
         if (box == NULL) break;
         rowEachSample = (box->itemData(box->currentIndex()).toInt() == 0);
 
+        box = w->findChild<QComboBox*>("csvInvert");
+        keepPolarity = (box ? ((box->itemData(box->currentIndex()).toInt()) == 0) : true);
 
     } while(false);
 
@@ -218,7 +233,7 @@ void UiCaptureExporter::exportToCsv(QWidget* w)
         QList<AnalogSignal*> analogSignals = mCaptureDevice->analogSignals();
 
         QList<QVector<int>*> digitalData;
-        QList<QVector<double>*> analogData;
+        QList<AnalogVectorInvert> analogData;
 
         int numSamples = -1;
         int sampleRate = mCaptureDevice->usedSampleRate();
@@ -245,7 +260,10 @@ void UiCaptureExporter::exportToCsv(QWidget* w)
 
             out << delim << QString("A%1").arg(s->id());
 
-            analogData.append(data);
+            AnalogVectorInvert	vec_inv;
+            vec_inv.data = data;
+            vec_inv.invert = keepPolarity ? 1.0 : s->invertSignal();
+            analogData.append(vec_inv);
             if (numSamples == -1 || data->size() < numSamples) {
                 numSamples = data->size();
             }
@@ -286,9 +304,9 @@ void UiCaptureExporter::exportToCsv(QWidget* w)
 
             }
 
-            foreach(QVector<double>* d, analogData) {
+            foreach(AnalogVectorInvert vec_inv, analogData) {
                 sampleRow.append(delim);
-                sampleRow.append(QString("%1").arg(d->at(i)));
+                sampleRow.append(QString("%1").arg(vec_inv.invert * vec_inv.data->at(i)));
                 //out << delim << d->at(i);
             }
 
