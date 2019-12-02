@@ -14,6 +14,7 @@
  *  limitations under the License.
  */
 #include "uianalogsignal.h"
+#include <limits>
 
 #include <QDebug>
 #include <QtGlobal>
@@ -1083,7 +1084,6 @@ UiAnalogSignalPrivate* UiAnalogSignal::findSignal(QPoint pxPoint)
     // no intersect found
     if (ix == -1) return NULL;
 
-
     // calculate distance to pxPoint
     double dist[mSignals.size()];
     for (int i = 0; i < mSignals.size(); i++) {
@@ -1091,23 +1091,24 @@ UiAnalogSignalPrivate* UiAnalogSignal::findSignal(QPoint pxPoint)
         UiAnalogSignalPrivate* p = mSignals.at(i);
 
         if (intersect[i].x() == -1) {
-            dist[i] = 12345678; // large value
+            dist[i] = std::numeric_limits<double>::max(); // large value
             continue;
         }
 
         double inv = p->mSignal->invertSignal();
         double yPx = inv*(mNumPxPerDiv/p->mSignal->vPerDiv())*(-intersect[i].y())
                 + p->mGndPos;
-        dist[i] = pxPoint.y()-yPx;
-        if (dist[i] < 0) dist[i] = -dist[i];
+        /* Minimum distance from Wave plots or GND line */
+        dist[i] = qMin(qAbs(pxPoint.y() - yPx), qAbs(pxPoint.y() - p->mGndPos));
     }
 
     // find signal with smallest distance
     UiAnalogSignalPrivate* result = NULL;
-    double resultDist = 12345678;
+    double resultDist = std::numeric_limits<double>::max();
+    double senseDiff = qMax(mNumPxPerDiv, 15);
     for (int i = 0; i < mSignals.size(); i++) {
 
-        if (dist[i] <= 15 && dist[i] < resultDist) {
+        if ((dist[i] <= senseDiff) && (dist[i] < resultDist)) {
             resultDist = dist[i];
             result = mSignals.at(i);
         }
