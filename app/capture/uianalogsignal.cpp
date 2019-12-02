@@ -1095,7 +1095,8 @@ UiAnalogSignalPrivate* UiAnalogSignal::findSignal(QPoint pxPoint)
             continue;
         }
 
-        double yPx = (mNumPxPerDiv/p->mSignal->vPerDiv())*(-intersect[i].y())
+        double inv = p->mSignal->invertSignal();
+        double yPx = inv*(mNumPxPerDiv/p->mSignal->vPerDiv())*(-intersect[i].y())
                 + p->mGndPos;
         dist[i] = pxPoint.y()-yPx;
         if (dist[i] < 0) dist[i] = -dist[i];
