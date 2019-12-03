@@ -1358,7 +1358,8 @@ void UiAnalogSignal::paintTriggerLevel(QPainter* painter)
             pen.setWidth(2);
             pen.setStyle(Qt::DotLine);
             painter->setPen(pen);
-            int y = (mNumPxPerDiv/p->mSignal->vPerDiv())
+            double inv = p->mSignal->invertSignal();
+            int y = inv*(double(mNumPxPerDiv)/p->mSignal->vPerDiv())
                     *(-p->mAnalogTrigger->level());
             painter->drawLine(plotX(), y, width(), y);
 
