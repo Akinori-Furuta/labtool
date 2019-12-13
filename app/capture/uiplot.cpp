@@ -118,6 +118,16 @@ void UiPlot::zoomAll()
     viewport()->update();
 }
 
+void UiPlot::saveProject(QSettings &project)
+{
+    mTimeAxis->saveProject(project);
+}
+
+void UiPlot::openProject(QSettings &project)
+{
+    mTimeAxis->openProject(project);
+}
+
 /*!
     Request signals to be redrawn.
 */

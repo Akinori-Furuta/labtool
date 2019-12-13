@@ -17,6 +17,7 @@
 #define UITIMEAXIS_H
 
 #include <QWidget>
+#include <QSettings>
 
 #include "uiabstractplotitem.h"
 
@@ -33,11 +34,17 @@ public:
 
     double rangeUpper();
     double rangeLower();
+    double majorStepTime();
     double reference();
     void setReference(double time);
 
+    void setMajorStepTime(double step);
     void zoom(int steps, double xCenter);
     void zoomAll(double lowerTime, double upperTime);
+    void restoreAxis(double refTime, double majorTime, double lowerTime, double upperTime);
+    void restoreAxis(double refTime, double majorTime);
+    void saveProject(QSettings &project);
+    void openProject(QSettings &project);
     void moveAxis(int differenceInPixels);
     int estimateHeight();
 
@@ -84,7 +91,6 @@ private:
     void updateRange();
     QString getTimeLabelForStep(int majorStep);
     int closestUnitDigit(double value);
-    
 };
 
 #endif // UITIMEAXIS_H

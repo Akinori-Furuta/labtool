@@ -169,3 +169,13 @@ void UiCaptureArea::zoomAll()
 {
     mPlot->zoomAll();
 }
+
+void UiCaptureArea::saveProject(QSettings &project)
+{
+    mPlot->saveProject(project);
+}
+
+void UiCaptureArea::openProject(QSettings &project)
+{
+    mPlot->openProject(project);
+}

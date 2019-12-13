@@ -17,6 +17,7 @@
 #define UICAPTUREAREA_H
 
 #include <QWidget>
+#include <QSettings>
 #include "uiplot.h"
 #include "uianaloggroup.h"
 
@@ -35,6 +36,8 @@ public slots:
     void zoomIn();
     void zoomOut();
     void zoomAll();
+    void saveProject(QSettings &project);
+    void openProject(QSettings &project);
 
 private:
     SignalManager* mSignalManager;

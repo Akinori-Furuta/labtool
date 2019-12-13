@@ -21,6 +21,7 @@
 #include <QAbstractScrollArea>
 #include <QPoint>
 #include <QPushButton>
+#include <QSettings>
 
 #include "uigrid.h"
 #include "uicursor.h"
@@ -36,10 +37,11 @@ public:
 
     void zoom(int steps, int xCenter = -1);
     void zoomAll();
+    void saveProject(QSettings &project);
+    void openProject(QSettings &project);
 
     void updateSignals();
     void handleSignalDataChanged();
-    
 signals:
    void cursorChanged(UiCursor::CursorId, bool, double);
     

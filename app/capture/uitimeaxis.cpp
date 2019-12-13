@@ -119,6 +119,14 @@ double UiTimeAxis::reference()
 }
 
 /*!
+    returns mejor step.
+*/
+double UiTimeAxis::majorStepTime()
+{
+    return mMajorStepTime;
+}
+
+/*!
     Sets the reference time/position.
 */
 void  UiTimeAxis::setReference(double value)
@@ -129,8 +137,18 @@ void  UiTimeAxis::setReference(double value)
     else if (value > 0 && value < qPow(10, MinRefTimeAsPowOf10)) {
         value = 0;
     }
-
     mRefTime = value;
+    updateRange();
+    update();
+}
+
+/*!
+    Sets the major step time
+*/
+
+void UiTimeAxis::setMajorStepTime(double step)
+{
+    mMajorStepTime = step;
     updateRange();
     update();
 }
@@ -238,6 +256,81 @@ void UiTimeAxis::zoomAll(double lowerTime, double upperTime)
     setReference(mMajorStepTime-(mRangeUpper-upperTime)/2);
     updateRange();
 
+}
+
+void UiTimeAxis::restoreAxis(double refTime, double majorTime, double lowerTime, double upperTime)
+{
+    if (lowerTime > upperTime) {
+        double t;
+        t = upperTime;
+        lowerTime = upperTime;
+        lowerTime = t;
+    }
+    int plotWidth = width() - mInfoWidth;
+    double window = upperTime - lowerTime;
+    double majorTicks = plotWidth / MajorStepPixelWidth;
+
+    if (window < majorTime) {
+        majorTime = window / majorTicks;
+        double l10MajorTime = qFloor(qLn(majorTime) / qLn(10.0));
+        double alignedMajorTime = qPow(10.0, l10MajorTime);
+        double x5 = alignedMajorTime * 5.0;
+        if (x5 < majorTime) {
+            majorTime = x5;
+        } else {
+            double x2 = alignedMajorTime * 2.0;
+            if (x2 < majorTime) {
+                majorTime = x2;
+            } else {
+                majorTime = alignedMajorTime;
+            }
+        }
+    }
+    if ((lowerTime > refTime) || (refTime > upperTime)) {
+        /* Range doesn't contain reference time */
+        /* do as update range. */
+
+        lowerTime = mRefTime - ReferenceMajorStep*majorTime;
+        upperTime = lowerTime
+            + (majorTime*plotWidth)/MajorStepPixelWidth;
+    }
+    mRefTime = refTime;
+    mMajorStepTime = majorTime;
+    mRangeLower = lowerTime;
+    mRangeUpper = upperTime;
+    update();
+}
+
+void UiTimeAxis::restoreAxis(double refTime, double majorTime)
+{
+    mRefTime = refTime;
+    mMajorStepTime = majorTime;
+    updateRange();
+    update();
+}
+
+static const char projectGroupThis[] = "timeAxis";
+static const char projectKeyRefTime[] = "refTime";
+static const char projectKeyMajorStepTime[] = "majorStepTime";
+
+void UiTimeAxis::saveProject(QSettings &project)
+{
+    project.beginGroup(projectGroupThis);
+    project.setValue(projectKeyRefTime, mRefTime);
+    project.setValue(projectKeyMajorStepTime, mMajorStepTime);
+    project.endGroup();
+}
+
+void UiTimeAxis::openProject(QSettings &project)
+{
+    double refTime;
+    double majorTime;
+
+    project.beginGroup(projectGroupThis);
+    refTime = project.value(projectKeyRefTime, mRefTime).toDouble();
+    majorTime = project.value(projectKeyMajorStepTime, mMajorStepTime).toDouble();
+    project.endGroup();
+    restoreAxis(refTime, majorTime);
 }
 
 /*!

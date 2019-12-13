@@ -217,7 +217,7 @@ void CaptureApp::openProject(QSettings &project)
         }
 
     }
-
+    mArea->openProject(project);
     mArea->handleSignalDataChanged();
 }
 
@@ -275,6 +275,7 @@ void CaptureApp::saveProject(QSettings &project)
         project.endGroup();
         file.close();
     }
+    mArea->saveProject(project);
 }
 
 /*!
