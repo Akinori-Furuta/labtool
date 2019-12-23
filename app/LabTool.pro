@@ -156,7 +156,9 @@ RESOURCES += \
 RC_FILE = icon.rc
 
 INCLUDEPATH += .
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/libusbx/MinGW32/dll/ -lusb-1.0
+win32:contains(QT_ARCH, x86_64):CONFIG(release, debug|release): LIBS += -L$$PWD/libusbx/MinGW64/dll/ -lusb-1.0
+else:win32:contains(QT_ARCH, x86_64):CONFIG(debug, debug|release) LIBS += -L$$PWD/libusbx/MinGW64/dll/ -lusb-1.0
+else:win32:CONFIG(release, debug|release): LIBS += -L$$PWD/libusbx/MinGW32/dll/ -lusb-1.0
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/libusbx/MinGW32/dll/ -lusb-1.0
 else:mac: LIBS += `/usr/local/bin/pkg-config libusb-1.0 --static --libs`
 else:unix:!symbian: LIBS += -L$$PWD/libusbx/Linux/ -lusb-1.0 -ludev
