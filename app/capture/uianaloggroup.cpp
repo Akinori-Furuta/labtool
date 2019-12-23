@@ -33,10 +33,10 @@ UiAnalogGroup::UiAnalogGroup(QWidget *parent) :
     QGroupBox(parent),
     mMinSize(0, 0)
 {
+    setupLabels();
     setTitle("Analog Measurements");
 
     mNumSignals = 0;
-    setupLabels();
 }
 
 /*!
@@ -202,7 +202,7 @@ void UiAnalogGroup::doLayout()
     QSize savedMinSize = mMinSize;
 
     /* Note: Assume that label and level use same font. */
-    QFontMetrics fm(mMeasureLevelDiffLbl[0]->font());
+    QFontMetrics fm(mMeasureLevelLbl[0]->font());
     int wLabel = fm.width("|A5-A6|:");
     int wValueMax = 0;
     //
