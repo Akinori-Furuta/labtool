@@ -167,6 +167,11 @@ UiAnalogSignalPrivate::~UiAnalogSignalPrivate()
 }
 
 /*!
+    DC and AC coupling selector minimum width.
+*/
+static const int DcAcButtonStyleMinWidth = 18;
+
+/*!
     DC and AC coupling selector minimum height.
 */
 static const int DcAcButtonStyleMinHeight = 18;
@@ -410,15 +415,15 @@ void UiAnalogSignalPrivate::setGeometry(int x, int y, int w, int h)
     if (mEditName->isVisible()) {
         wy = mEditName->pos().y() + mEditName->height() + 7;
     }
-    int wVPerDiv = fm.width(mVPerDivBox->text()) + widthId * 2 /* Approx Value */;
-    mVPerDivBox->resize(wVPerDiv, fm.height() + 4);
+    int wVPerDiv = fm.width(mVPerDivBox->text()) + ((qMax(widthId, DcAcButtonStyleMinWidth) * 5 + 2) / 2) /* Approx Value */;
+    mVPerDivBox->resize(wVPerDiv, fm.height() + 5);
     wx = w/2-mVPerDivBox->width()/2;
     mVPerDivBox->move(wx, wy);
 
     // signal color is painted below mVPerDivBox (see paintInfo)
     wy = mVPerDivBox->pos().y()+mVPerDivBox->height()+3+5+5;
 
-    int wDcBtn = fm.width("DC") + widthId /* Approx Value. */;
+    int wDcBtn = DcAcButtonStyleMinWidth + fm.width("DC") + 4 /* Approx Value. */;
     int hDcBtn = qMax(DcAcButtonStyleMinHeight, fm.height());
     mDcBtn->resize(wDcBtn, hDcBtn);
     mAcBtn->resize(wDcBtn, hDcBtn);
