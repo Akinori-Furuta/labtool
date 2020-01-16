@@ -167,6 +167,11 @@ UiAnalogSignalPrivate::~UiAnalogSignalPrivate()
 }
 
 /*!
+    DC and AC coupling selector minimum height.
+*/
+static const int DcAcButtonStyleMinHeight = 18;
+
+/*!
     DC and AC coupling selector button style.
 */
 static const char DcAcButtonStyleSheet[] =
@@ -190,6 +195,11 @@ static const char DcAcButtonStyleSheet[] =
 "   border-style: inset;"
 "   background-color: #10ff00;"
 "}";
+
+/*!
+    Invert CheckBox minumum height.
+*/
+static const int InvertCheckBoxStyleHeight = 16;
 
 /*!
     Invert CheckBox style.
@@ -409,13 +419,14 @@ void UiAnalogSignalPrivate::setGeometry(int x, int y, int w, int h)
     wy = mVPerDivBox->pos().y()+mVPerDivBox->height()+3+5+5;
 
     int wDcBtn = fm.width("DC") + widthId /* Approx Value. */;
-    mDcBtn->resize(wDcBtn, fm.height());
-    mAcBtn->resize(wDcBtn, fm.height());
+    int hDcBtn = qMax(DcAcButtonStyleMinHeight, fm.height());
+    mDcBtn->resize(wDcBtn, hDcBtn);
+    mAcBtn->resize(wDcBtn, hDcBtn);
     mDcBtn->move(wx, wy);
     mAcBtn->move(wx + wVPerDiv / 2, wy);
-    wy += fm.height() + 3;
+    wy += hDcBtn + 3;
     mInvertSignal->move(wx, wy);
-    mInvertSignal->resize(wVPerDiv, fm.height());
+    mInvertSignal->resize(wVPerDiv, qMax(InvertCheckBoxStyleHeight, fm.height()));
     if (mGndPos == -1) {
         mGndPos = (double)y + (double)h/2;
     }
