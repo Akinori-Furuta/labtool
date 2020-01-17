@@ -51,7 +51,7 @@ UiAnalogTrigger::UiAnalogTrigger(QWidget *parent) :
     mLevel = new QSlider(this);
     mLevel->setRange(-TRIGGER_RANGE, TRIGGER_RANGE);
     mLevel->setSingleStep(1);
-    mLevel->resize(mLevel->minimumSizeHint().width(), SLIDER_MIN_HEIGHT);
+    mLevel->resize(qMax(mLevelMinimumWidth,  mLevel->minimumSizeHint().width()), SLIDER_MIN_HEIGHT);
 
     connect(mLevel, SIGNAL(valueChanged(int)),
             this, SLOT(setTriggerLevel(int)));
