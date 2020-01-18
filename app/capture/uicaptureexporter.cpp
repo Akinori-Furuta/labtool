@@ -176,6 +176,14 @@ QWidget* UiCaptureExporter::createFormatCsv()
 }
 
 /*!
+    Analog samples with invert factor.
+*/
+typedef struct {
+    QVector<double>* data;
+    double invert;
+} AnalogVectorInvert;
+
+/*!
     Export signal data in CSV format.
 */
 void UiCaptureExporter::exportToCsv(QWidget* w)
@@ -184,11 +192,6 @@ void UiCaptureExporter::exportToCsv(QWidget* w)
     bool sampleAsTime = true;
     bool rowEachSample = true;
     bool keepPolarity = true;
-
-    typedef struct {
-        QVector<double>* data;
-        double invert;
-    } AnalogVectorInvert;
 
     do {
         QComboBox* box = w->findChild<QComboBox*>("csvDelim");
