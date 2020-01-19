@@ -36,9 +36,9 @@ public:
     static const QString ProjectBinFileExt;
 
     enum {
-        analogHeightMin = 200,
+        analogHeightMin = 228,
         analogHeightMax = 536,
-        analogHeightDef = 200,
+        analogHeightDef = 228,
         digitalHeightDef = 40,
     };
 
