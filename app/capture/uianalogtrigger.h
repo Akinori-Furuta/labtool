@@ -55,8 +55,9 @@ private:
     QLabel* mLevelLbl;
     double mVPerDiv;
     int mScale;
-    const int mLevelMinimumWidth = 15;
-
+    enum {
+        mLevelMinimumWidth = 15,
+    };
     void drawTriggerLevel(int level);
     void doLayout();
 
