@@ -1266,14 +1266,14 @@ void UiAnalogSignal::paintSignals(QPainter* painter)
         fromIdx = qMax(fromIdx, 0);
         enum {psInit, psNoPrev, psPrevReady} plotState = psInit;
         double yscale = -((double(mNumPxPerDiv) * p->mSignal->invertSignal()) / p->mSignal->vPerDiv());
-        int    iXPrev;
-        int    iXCurrent;
+        int    iXPrev = 0;
+        int    iXCurrent = 0;
         double sumVertCurrent = 0;
         int    sumVertNum = 1;
-        int    vertCurrent;
-        int    vertPrev;
-        int    vertMax;
-        int    vertMin;
+        int    vertCurrent = 0;
+        int    vertPrev = 0;
+        int    vertMax = std::numeric_limits<int>::min();
+        int    vertMin = std::numeric_limits<int>::max();
 
         // draw signal
         QColor colorLine(Configuration::instance().analogSignalColor(id));
