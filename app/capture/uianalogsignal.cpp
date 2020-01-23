@@ -469,11 +469,43 @@ void UiAnalogSignalPrivate::setLightDark()
     palette.setColor(QPalette::Base, Configuration::instance().plotBackgroundColor());
     palette.setColor(QPalette::Background, Configuration::instance().plotBackgroundColor());
     mEditName->setPalette(palette);
-    palette = mVPerDivBox->palette();
-    palette.setColor(QPalette::Text, Configuration::instance().textColor());
-    palette.setColor(QPalette::Base, Configuration::instance().plotBackgroundColor());
-    palette.setColor(QPalette::Background, Configuration::instance().plotBackgroundColor());
-    mVPerDivBox->setPalette(palette);
+    QString vper_div_style = QString(
+        "QSpinBox::up-button {\n"
+        " width: 16px;\n"
+        " background-color: #9c8252;\n"
+        "}\n"
+        "QSpinBox::down-button {\n"
+        " width: 16px;\n"
+        " background-color: #507656;\n"
+        "}\n"
+        "QSpinBox::up-button:hover {\n"
+        " width: 16px;\n"
+        " background-color: #b49452;\n"
+        "}\n"
+        "QSpinBox::down-button:hover {\n"
+        " width: 16px;\n"
+        " background-color: #528c5e;\n"
+        "}\n"
+        "QSpinBox {\n"
+        " color: %1;\n"
+        " background-color: %2;\n"
+        " border: 2px solid #308020;\n"
+        " border-radius: 2px;\n"
+        "}\n"
+        "QSpinBox::up-arrow {\n"
+        " image: url(:/resources/spinbox-up-arrow.png);\n"
+        " width: 10px;\n"
+        " height: 8px;\n"
+        "}\n"
+        "QSpinBox::down-arrow {\n"
+        " image: url(:/resources/spinbox-down-arrow.png);\n"
+        " width: 10px;\n"
+        " height: 8px;\n"
+        "}\n"
+    ).arg(Configuration::instance().textColor().name(),
+          Configuration::instance().plotBackgroundColor().name()
+    );
+    mVPerDivBox->setStyleSheet(vper_div_style);
     palette = mDcBtn->palette();
     palette.setColor(QPalette::Foreground, Configuration::instance().textColor());
     mDcBtn->setPalette(palette);
