@@ -240,8 +240,6 @@ void UiAnalogTrigger::drawTriggerLevel(int level)
     palette.setColor(QPalette::Text, Configuration::instance().textColor());
     mLevelLbl->setPalette(palette);
     mLevelLbl->setText(QString("%1").arg(l, 4, 'f', 2));
-    mLevelLbl->hide();
-    mLevelLbl->show();
     doLayout();
 }
 
