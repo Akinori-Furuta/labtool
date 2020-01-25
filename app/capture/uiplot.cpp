@@ -83,9 +83,7 @@ UiPlot::UiPlot(SignalManager *signalManager, QWidget *parent) :
 
     setAcceptDrops(true);
 
-    QPalette p = palette();
-    p.setColor(QPalette::Base, Configuration::instance().outsidePlotColor());
-    setPalette(p);
+    setLightDark();
 }
 
 /*!
@@ -634,4 +632,16 @@ void UiPlot::handleSignalsRemoved()
     updateVerticalScrollBar();
     updateLayout();
 
+}
+
+void UiPlot::setLightDark()
+{
+    QPalette p = palette();
+    p.setColor(QPalette::Base, Configuration::instance().outsidePlotColor());
+    setPalette(p);
+}
+
+void UiPlot::updateUi()
+{
+    setLightDark();
 }

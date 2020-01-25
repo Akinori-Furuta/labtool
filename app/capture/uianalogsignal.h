@@ -47,7 +47,8 @@ public:
     QList<AnalogSignal*> addedSignals();
 
     void clearTriggers();
-    
+    void updateUi();
+
 signals:
     void measurmentChanged(QList<double>level, QList<double>pk, bool active);
     void triggerSet();

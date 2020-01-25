@@ -614,3 +614,27 @@ void SignalManager::handleAnalogTriggerSet()
         }
     }
 }
+
+void SignalManager::updateUi()
+{
+    if (mAnalogSignalWidget != NULL) {
+        mAnalogSignalWidget->updateUi();
+    }
+
+    foreach(UiAbstractSignal* s,  mSignalList) {
+
+        UiDigitalSignal* ds = qobject_cast<UiDigitalSignal*>(s);
+        if (ds != NULL) {
+            /* It's digital signal. */
+            ds->updateUi();
+            continue;
+        }
+
+        UiAnalyzer *analyzer = qobject_cast<UiAnalyzer*>(s);
+        if (analyzer != NULL) {
+            /* It's analyzer. */
+            analyzer->updateUi();
+            continue;
+        }
+    }
+}

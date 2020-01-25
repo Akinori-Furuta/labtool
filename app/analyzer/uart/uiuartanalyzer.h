@@ -101,7 +101,8 @@ public:
 
     QString toSettingsString() const;
     static UiUartAnalyzer* fromSettingsString(const QString &settings);
-    
+    virtual void updateUi();
+
 signals:
     
 public slots:
@@ -145,6 +146,7 @@ private:
                                  int value,
                                  QString &shortTxt,
                                  QString &longTxt);
+    void setLightDark();
     
 };
 

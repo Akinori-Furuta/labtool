@@ -71,6 +71,7 @@ UiI2CAnalyzer::UiI2CAnalyzer(QWidget *parent) :
     palette.setColor(QPalette::Text, QColor(0x10,  0xe0,  0x00) /* Green LED */);
     mSclLbl->setPalette(palette);
     mSdaLbl->setPalette(palette);
+    setLightDark();
 
     setFixedHeight(50);
 }
@@ -544,11 +545,6 @@ void UiI2CAnalyzer::paintEvent(QPaintEvent *event)
 
     int textMargin = 3;
 
-    QPalette palette = mIdLbl->palette();
-    palette.setColor(QPalette::Text, Configuration::instance().textColor());
-    mIdLbl->setPalette(palette);
-    mNameLbl->setPalette(palette); /* Use same Id label palette. */
-
     // -----------------
     // draw background
     // -----------------
@@ -787,7 +783,16 @@ int UiI2CAnalyzer::calcMinimumWidth()
     return w+infoContentMargin().right();
 }
 
+void UiI2CAnalyzer::setLightDark()
+{
+    QPalette palette = mIdLbl->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mIdLbl->setPalette(palette);
+    mNameLbl->setPalette(palette); /* Use same Id label palette. */
+}
 
-
-
-
+void UiI2CAnalyzer::updateUi()
+{
+    UiAnalyzer::updateUi();
+    setLightDark();
+}

@@ -71,6 +71,8 @@ UiAnalogTrigger::UiAnalogTrigger(QWidget *parent) :
     resize(level_width,
            TRIGGER_STATE_HEIGHT+TRIGGER_TO_SLIDER_DIST
            +mLevel->height()+3+mLevelLbl->height());
+
+    setLightDark();
 }
 
 /*!
@@ -236,9 +238,6 @@ void UiAnalogTrigger::setTriggerLevel(int level)
 void UiAnalogTrigger::drawTriggerLevel(int level)
 {
     double l = (double)level/mScale;
-    QPalette palette = mLevelLbl->palette();
-    palette.setColor(QPalette::Text, Configuration::instance().textColor());
-    mLevelLbl->setPalette(palette);
     mLevelLbl->setText(QString("%1").arg(l, 4, 'f', 2));
     doLayout();
 }
@@ -260,4 +259,16 @@ void UiAnalogTrigger::doLayout()
 
     mLevelLbl->move(width()/2-mLevelLbl->minimumSizeHint().width()/2,
                     mLevel->pos().y()+mLevel->height()+3);
+}
+
+void UiAnalogTrigger::setLightDark()
+{
+    QPalette palette = mLevelLbl->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mLevelLbl->setPalette(palette);
+}
+
+void UiAnalogTrigger::updateUi()
+{
+    setLightDark();
 }

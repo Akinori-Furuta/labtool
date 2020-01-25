@@ -31,7 +31,7 @@ public:
     explicit UiSimpleAbstractSignal(QWidget *parent = 0);
     virtual void setSignalName(QString signalName);
     QString getName() const;
-
+    virtual void updateUi();
 
 signals:
     

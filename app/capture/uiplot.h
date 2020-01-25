@@ -42,6 +42,8 @@ public:
 
     void updateSignals();
     void handleSignalDataChanged();
+    void updateUi();
+
 signals:
    void cursorChanged(UiCursor::CursorId, bool, double);
     
@@ -85,6 +87,7 @@ private:
     QPoint mapToCursor(const QPoint &pos) const;
 
     double getEndTime();    
+    void setLightDark();
 
 private slots:
     void updateLayout();

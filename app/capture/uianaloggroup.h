@@ -27,6 +27,7 @@ class UiAnalogGroup : public QGroupBox
 public:
     explicit UiAnalogGroup(QWidget *parent = 0);
     void setNumSignals(int numSignals);
+    void updateUi();
     
 signals:
     

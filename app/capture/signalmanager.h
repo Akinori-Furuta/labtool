@@ -47,6 +47,7 @@ public:
     void reloadSignalsFromDevice();
 
     double closestDigitalTransition(double startTime);
+    void updateUi();
     
 signals:
     void signalsAdded();

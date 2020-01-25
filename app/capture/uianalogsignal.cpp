@@ -101,8 +101,8 @@ public:
     int minimumHeight();
 
     void paintInfo(QPainter* painter, QColor color);
-    void paintEventUpdate();
     void setLightDark();
+    void updateUi();
 };
 
 /*!
@@ -453,11 +453,6 @@ void UiAnalogSignalPrivate::paintInfo(QPainter* painter, QColor color)
     painter->drawRoundRect(rect, 10, 10);
 }
 
-void UiAnalogSignalPrivate::paintEventUpdate()
-{
-	setLightDark();
-}
-
 void UiAnalogSignalPrivate::setLightDark()
 {
     QPalette palette = mIdLbl->palette();
@@ -514,6 +509,12 @@ void UiAnalogSignalPrivate::setLightDark()
     mAcBtn->setFont(mIdLbl->font());
     mDisableBtn->setIcon(Configuration::instance().closeIcon());
     mInvertSignal->setPalette(palette);
+}
+
+void UiAnalogSignalPrivate::updateUi()
+{
+    setLightDark();
+    mAnalogTrigger->updateUi();
 }
 
 /*!
@@ -1254,8 +1255,6 @@ void UiAnalogSignal::paintSignals(QPainter* painter)
         UiAnalogSignalPrivate* p = mSignals.at(i);
         int id = p->mSignal->id();
 
-        p->paintEventUpdate();
-
         QPen pen = painter->pen();
 
         // info part of the signal
@@ -1486,4 +1485,11 @@ void UiAnalogSignal::doLayout()
     mNumPxPerDiv = height()/NumDivs;
 }
 
+void UiAnalogSignal::updateUi()
+{
+    for (int i = 0; i < mSignals.size(); i++) {
+        UiAnalogSignalPrivate* p = mSignals.at(i);
 
+        p->updateUi();
+    }
+}

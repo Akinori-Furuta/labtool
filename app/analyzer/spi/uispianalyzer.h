@@ -111,6 +111,8 @@ public:
 
     QString toSettingsString() const;
     static UiSpiAnalyzer* fromSettingsString(const QString &settings);
+
+    virtual void updateUi();
     
 signals:
     
@@ -160,6 +162,8 @@ private:
 
     void paintSignal(QPainter* painter, double from, double to,
                      int h, QString &shortTxt, QString &longTxt);
+
+    void setLightDark();
 };
 
 #endif // UISPIANALYZER_H

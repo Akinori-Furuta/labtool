@@ -68,6 +68,8 @@ UiUartAnalyzer::UiUartAnalyzer(QWidget *parent) :
     palette.setColor(QPalette::Text, QColor(0x10,  0xe0,  0x00) /* Green LED */);
     mSignalLbl->setPalette(palette);
 
+    setLightDark();
+
     setFixedHeight(50);
 }
 
@@ -536,11 +538,6 @@ void UiUartAnalyzer::paintEvent(QPaintEvent *event)
     QString shortTxt;
     QString longTxt;
 
-    QPalette palette = mIdLbl->palette();
-    palette.setColor(QPalette::Text, Configuration::instance().textColor());
-    mIdLbl->setPalette(palette);
-    mNameLbl->setPalette(palette); /* Use same Id label palette. */
-
     QPen pen = painter.pen();
     pen.setColor(Configuration::instance().analyzerColor());
     painter.setPen(pen);
@@ -716,4 +713,18 @@ void UiUartAnalyzer::typeAndValueAsString(UartItem::ItemType type,
         break;
     }
 
+}
+
+void UiUartAnalyzer::setLightDark()
+{
+    QPalette palette = mIdLbl->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mIdLbl->setPalette(palette);
+    mNameLbl->setPalette(palette); /* Use same Id label palette. */
+}
+
+void UiUartAnalyzer::updateUi()
+{
+    UiAnalyzer::updateUi();
+    setLightDark();
 }

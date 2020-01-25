@@ -83,6 +83,8 @@ UiSpiAnalyzer::UiSpiAnalyzer(QWidget *parent) :
     mMisoLbl->setPalette(palette);
     mEnableLbl->setPalette(palette);
 
+    setLightDark();
+
     setFixedHeight(60);
 }
 
@@ -547,11 +549,6 @@ void UiSpiAnalyzer::paintEvent(QPaintEvent *event)
 
     int textMargin = 3;
 
-    QPalette palette = mIdLbl->palette();
-    palette.setColor(QPalette::Text, Configuration::instance().textColor());
-    mIdLbl->setPalette(palette);
-    mNameLbl->setPalette(palette); /* Use same Id label palette. */
-
     // -----------------
     // draw background
     // -----------------
@@ -806,4 +803,18 @@ void UiSpiAnalyzer::paintSignal(QPainter* painter, double from, double to,
         painter->drawText(textRect, Qt::AlignCenter, shortTxt);
     }
 
+}
+
+void UiSpiAnalyzer::setLightDark()
+{
+    QPalette palette = mIdLbl->palette();
+    palette.setColor(QPalette::Text, Configuration::instance().textColor());
+    mIdLbl->setPalette(palette);
+    mNameLbl->setPalette(palette); /* Use same Id label palette. */
+}
+
+void UiSpiAnalyzer::updateUi()
+{
+     UiAnalyzer::updateUi();
+     setLightDark();
 }

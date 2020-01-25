@@ -214,7 +214,6 @@ void UiSimpleAbstractSignal::configure()
 
 void UiSimpleAbstractSignal::paintBackground(QPainter* painter)
 {
-    setLightDark();
     UiAbstractSignal::paintBackground(painter);
 }
 
@@ -233,4 +232,9 @@ void UiSimpleAbstractSignal::setLightDark()
     mEditName->setPalette(palette);
     mConfigureBtn->setIcon(cfg->configureIcon());
     mDisableBtn->setIcon(cfg->closeIcon());
+}
+
+void UiSimpleAbstractSignal::updateUi()
+{
+    setLightDark();
 }

@@ -33,6 +33,7 @@ public:
     double level();
     void setLevel(double level);
     void setVPerDiv(double vPerDiv);
+    void updateUi();
 
 signals:
     void triggerChanged();
@@ -60,7 +61,7 @@ private:
     };
     void drawTriggerLevel(int level);
     void doLayout();
-
+    void setLightDark();
 };
 
 #endif // UIANALOGTRIGGER_H

@@ -145,6 +145,8 @@ void UiMainWindow::changeToScheme(QString &scheme)
 {
     Configuration::instance().loadColorScheme(scheme);
 
+    mCapture->updateUi();
+
     // Make sure the scheme is selected in the menu
     QAction* action = findChild<QAction*>(scheme);
     if (action != NULL) {

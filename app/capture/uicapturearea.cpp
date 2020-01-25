@@ -122,7 +122,10 @@ void UiCaptureArea::handleSignalDataChanged()
 */
 void UiCaptureArea::updateUi()
 {
+    mPlot->updateUi();
     mPlot->viewport()->update();
+    mSignalManager->updateUi();
+    mAnalogGroup->updateUi();
 }
 
 /*!

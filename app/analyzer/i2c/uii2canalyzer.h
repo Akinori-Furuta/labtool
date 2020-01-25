@@ -107,7 +107,8 @@ public:
 
     QString toSettingsString() const;
     static UiI2CAnalyzer* fromSettingsString(const QString &settings);
-    
+    virtual void updateUi();
+
 signals:
     
 public slots:
@@ -116,7 +117,7 @@ protected:
     void paintEvent(QPaintEvent *event);
     void showEvent(QShowEvent* event);
     virtual void changeEvent(QEvent *event);
-
+    void setLightDark();
 
 private:
 

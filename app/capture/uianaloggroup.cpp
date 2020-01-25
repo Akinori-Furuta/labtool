@@ -303,3 +303,7 @@ void UiAnalogGroup::doLayout()
         updateGeometry();
     }
 }
+
+void UiAnalogGroup::updateUi()
+{
+}
