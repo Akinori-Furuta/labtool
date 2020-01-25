@@ -497,6 +497,14 @@ void UiAnalogSignalPrivate::setLightDark()
         " width: 10px;\n"
         " height: 8px;\n"
         "}\n"
+        "QSpinBox::up-button:pressed {\n"
+        " width: 16px;\n"
+        " background-color: #d4b452;\n"
+        "}\n"
+        "QSpinBox::down-button:pressed {\n"
+        " width: 16px;\n"
+        " background-color: #52ac5e;\n"
+        "}\n"
     ).arg(Configuration::instance().textColor().name(),
           Configuration::instance().plotBackgroundColor().name()
     );
