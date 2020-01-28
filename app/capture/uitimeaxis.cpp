@@ -410,8 +410,8 @@ void UiTimeAxis::infoWidthChanged()
 
 int UiTimeAxis::estimateHeight()
 {
-    QPainter painter(this);
-    int fontHeight = painter.fontMetrics().height();
+    QFontMetrics fm(parentWidget()->font());
+    int fontHeight = fm.height();
     int hTimeScale = fontHeight + TimeTickSpace + MajorTickHeight;
     return hTimeScale;
 }
