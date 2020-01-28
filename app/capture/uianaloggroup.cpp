@@ -35,7 +35,6 @@ UiAnalogGroup::UiAnalogGroup(QWidget *parent) :
     mMinSize(0, 0)
 {
     setupLabels();
-    setTitle("Analog Measurements");
 
     mNumSignals = 0;
 }
@@ -63,6 +62,7 @@ void UiAnalogGroup::setNumSignals(int numSignals)
 
     }
 
+    setTitle("Analog Measurements");
     doLayout();
 }
 
