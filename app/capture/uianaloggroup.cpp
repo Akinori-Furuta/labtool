@@ -212,27 +212,30 @@ void UiAnalogGroup::doLayout()
     for (int i = 0; i < mNumSignals; i++) {
         QLabel *label = mMeasureLevelLbl[i];
         QLabel *level = mMeasureLevel[i];
-        int    wValue = fm.width(level->text());
-        label->resize(wLabel, fm.height());
-        level->resize(wValue, fm.height());
+        QString text;
+        text = (level ? level->text() : "W");
+        int    wValue = fm.width(text);
+        if (label) (label->resize(wLabel, fm.height()));
+        if (level) (level->resize(wValue, fm.height()));
         wValueMax = qMax(wValueMax, wValue);
 
         label = mMeasurePkLbl[i];
         level = mMeasurePk[i];
-        wValue = fm.width(level->text());
+        text = (level ? level->text() : "W");
+        wValue = fm.width(text);
 
-        label->resize(wLabel, fm.height());
-        level->resize(wValue, fm.height());
+        if (label) (label->resize(wLabel, fm.height()));
+        if (level) (level->resize(wValue, fm.height()));
         wValueMax = qMax(wValueMax, wValue);
 
         if ((i % 2) == 1) {
 
             label = mMeasureLevelDiffLbl[i/2];
             level = mMeasureLevelDiff[i/2];
-
-            wValue = fm.width(level->text());
-            label->resize(wLabel, fm.height());
-            level->resize(wValue, fm.height());
+            text = (level ? level->text() : "W");
+            wValue = fm.width(text);
+            if (label) (label->resize(wLabel, fm.height()));
+            if (level) (level->resize(wValue, fm.height()));
             wValueMax = qMax(wValueMax, wValue);
 
         }
@@ -251,10 +254,12 @@ void UiAnalogGroup::doLayout()
     for (int i = 0; i < mNumSignals; i++) {
         QLabel *label = mMeasureLevelLbl[i];
         QLabel *level = mMeasureLevel[i];
-        int    wValue = fm.width(level->text());
+        QString text;
+        text = (level ? level->text() : "W");
+        int    wValue = fm.width(text);
 
-        label->move(xPos, yPos);
-        level->move(xPosRight, yPos);
+        if (label) (label->move(xPos, yPos));
+        if (level) (level->move(xPosRight, yPos));
         wValueMax = qMax(wValueMax, wValue);
 
         yPos += fm.height() + VertDistBetweenRelated;
@@ -267,10 +272,13 @@ void UiAnalogGroup::doLayout()
         for (int i = 0; i < mNumSignals/2; i++) {
             QLabel *label = mMeasureLevelDiffLbl[i/2];
             QLabel *level = mMeasureLevelDiff[i/2];
-            int    wValue = fm.width(level->text());
+            QString text;
 
-            label->move(xPos, yPos);
-            level->move(xPosRight, yPos);
+            text = (level ? level->text() : "W");
+            int    wValue = fm.width(text);
+
+            if (label) (label->move(xPos, yPos));
+            if (level) (level->move(xPosRight, yPos));
             wValueMax = qMax(wValueMax, wValue);
 
             yPos += fm.height() + VertDistBetweenRelated;
@@ -284,10 +292,12 @@ void UiAnalogGroup::doLayout()
     for (int i = 0; i < mNumSignals; i++) {
         QLabel *label = mMeasurePkLbl[i];
         QLabel *level = mMeasurePk[i];
-        int    wValue = fm.width(level->text());
+        QString text;
+        text = (level ? level->text() : "W");
+        int    wValue = fm.width(text);
 
-        label->move(xPos, yPos);
-        level->move(xPosRight, yPos);
+        if (label) (label->move(xPos, yPos));
+        if (level) (level->move(xPosRight, yPos));
         wValueMax = qMax(wValueMax, wValue);
 
         yPos += fm.height() + VertDistBetweenRelated;
