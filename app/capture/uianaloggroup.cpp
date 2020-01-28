@@ -14,6 +14,7 @@
  *  limitations under the License.
  */
 
+#include <cstddef>
 #include <QtGlobal>
 #include "uianaloggroup.h"
 
@@ -149,43 +150,67 @@ QSize UiAnalogGroup::sizeHint() const
     return minimumSizeHint();
 }
 
+#define ELEMENTS_OF(array) (sizeof(array) / sizeof((array)[0]))
+
 /*!
     Create needed labels.
 */
 void UiAnalogGroup::setupLabels()
 {
+    QLabel *level;
+    QLabel *label;
+
+    /* first, clean pointers to widgets. */
+    for (size_t i = 0; i < ELEMENTS_OF(mMeasureLevelLbl); i++) {
+        mMeasureLevelLbl[i] = NULL;
+    }
+    for (size_t i = 0; i < ELEMENTS_OF(mMeasureLevel); i++) {
+        mMeasureLevel[i] = NULL;
+    }
+    for (size_t i = 0; i < ELEMENTS_OF(mMeasurePk); i++) {
+        mMeasurePk[i] = NULL;
+    }
+    for (size_t i = 0; i < ELEMENTS_OF(mMeasureLevelDiffLbl); i++) {
+        mMeasureLevelDiffLbl[i] = NULL;
+    }
+    for (size_t i = 0; i < ELEMENTS_OF(mMeasureLevelDiff); i++) {
+        mMeasureLevelDiff[i] = NULL;
+    }
+
     for (int i = 0; i < UiAnalogSignal::MaxNumSignals; i++) {
         // Level
 
         // Deallocation: "Qt Object trees" (See UiMainWindow)
-        mMeasureLevelLbl[i] = new QLabel(this);
-        mMeasureLevelLbl[i]->setText(QString("A%1:").arg(i));
-        mMeasureLevelLbl[i]->setVisible(false);
+        mMeasureLevelLbl[i] = label = new QLabel(this);
+        label->setText(QString("A%1:").arg(i));
+        label->setVisible(false);
         // Deallocation: "Qt Object trees" (See UiMainWindow)
-        mMeasureLevel[i] = new QLabel(this);
-        mMeasureLevel[i]->setVisible(false);
+        mMeasureLevel[i] = level = new QLabel(this);
+        level->setText("");
+        level->setVisible(false);
 
         // Peak-to-Peak
 
         // Deallocation: "Qt Object trees" (See UiMainWindow)
-        mMeasurePkLbl[i] = new QLabel(this);
-        mMeasurePkLbl[i]->setText(QString("Pk-Pk%1:").arg(i));
-        mMeasurePkLbl[i]->setVisible(false);
+        mMeasurePkLbl[i] = label = new QLabel(this);
+        label->setText(QString("Pk-Pk%1:").arg(i));
+        label->setVisible(false);
         // Deallocation: "Qt Object trees" (See UiMainWindow)
-        mMeasurePk[i] = new QLabel(this);
-        mMeasurePk[i]->setVisible(false);
+        mMeasurePk[i] = level = new QLabel(this);
+        level->setText("");
+        level->setVisible(false);
 
         // Level Diff (only every other idx; 1, 3, ...)
         if ((i % 2) == 1) {
 
             // Deallocation: "Qt Object trees" (See UiMainWindow)
-            mMeasureLevelDiffLbl[i/2] = new QLabel(this);
-            mMeasureLevelDiffLbl[i/2]
-                    ->setText(QString("|A%1-A%2|:").arg(i-1).arg(i));
-            mMeasureLevelDiffLbl[i/2]->setVisible(false);
+            mMeasureLevelDiffLbl[i/2] = label = new QLabel(this);
+            label->setText(QString("|A%1-A%2|:").arg(i-1).arg(i));
+            label->setVisible(false);
             // Deallocation: "Qt Object trees" (See UiMainWindow)
-            mMeasureLevelDiff[i/2] = new QLabel(this);
-            mMeasureLevelDiff[i/2]->setVisible(false);
+            mMeasureLevelDiff[i/2] = level = new QLabel(this);
+            level->setText("");
+            level->setVisible(false);
 
         }
 
