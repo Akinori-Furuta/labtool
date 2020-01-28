@@ -21,7 +21,11 @@
 #include "labtooldevicetransfer.h"
 #include "labtoolcalibrationdata.h"
 
+#if (!defined(LIBUSB_USE_INSTALLED))
 #include "libusbx/include/libusbx-1.0/libusb.h"
+#else  /* (!defined(LIBUSB_USE_INSTALLED)) */
+#include <libusb-1.0/libusb.h>
+#endif /* (!defined(LIBUSB_USE_INSTALLED)) */
 
 class LabToolDeviceTransfer;
 

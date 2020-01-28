@@ -15,6 +15,37 @@
  */
 #include "labtooldevicecomm.h"
 
+/*
+ * Note: we found libusb_get_version() in v1.0.12 release.
+ * But we can determine whether this API is available or
+ * not by checking LIBUSBX_API_VERSION and LIBUSB_API_VERSION
+ * macros. These macros are defined in v1.0.13 or later.
+ *
+ * libusb v1.0.13 defines LIBUSBX_API_VERSION as 0x01000100,
+ * and exports libusb_get_version().
+ *
+ * libusb v1.0.14 defines LIBUSBX_API_VERSION as 0x010000ff,
+ * and exports libusb_get_port_path(). CAUTION! v1.0.14 decrements
+ * the LIBUSBX_API_VERSION number.
+ *
+ * libusb v1.0.15 defines LIBUSBX_API_VERSION as 0x01000101.
+ */
+
+#if defined(LIBUSBX_API_VERSION)
+#if (!defined(LIBUSB_API_VERSION))
+/* Alias LIBUSB_API_VERSION as LIBUSBX_API_VERSION */
+#define LIBUSB_API_VERSION LIBUSBX_API_VERSION
+#endif /* (!defined(LIBUSB_API_VERSION)) */
+#endif /* defined(LIBUSBX_API_VERSION) */
+
+#if defined(LIBUSB_API_VERSION)
+#if ((LIBUSB_API_VERSION == 0x010000ff) || (LIBUSB_API_VERSION >= 0x01000100))
+#define LIBUSB_HAS_VERSION_API
+#endif /* LIBUSB_API_VERSION checks. */
+#if ((LIBUSB_API_VERSION == 0x010000ff) || (LIBUSB_API_VERSION >= 0x01000101))
+#define LIBUSB_HAS_PORT_PATH_API
+#endif /* LIBUSB_API_VERSION checks. */
+#endif /* defined(LIBUSB_API_VERSION) */
 
 /*!
     The Vendor Identifier (VID) of the LabTool Hardware
@@ -241,9 +272,13 @@ bool LabToolDeviceComm::connectToDevice(bool quiet)
 
     if (!quiet)
     {
+#if (defined(LIBUSB_HAS_VERSION_API))
         const struct libusb_version* version = libusb_get_version();
         qDebug("Using libusbx v%d.%d.%d.%d", version->major, version->minor, version->micro, version->nano);
         qDebug("Initializing library...");
+#else /* (defined(LIBUSB_HAS_VERSION_API)) */
+        qDebug("Using libusbx v1.0.12 or older");
+#endif /* (defined(LIBUSB_HAS_VERSION_API)) */
     }
 
     int r = libusb_init(&this->mContext);
@@ -252,8 +287,7 @@ bool LabToolDeviceComm::connectToDevice(bool quiet)
         qDebug("Failed to initialize libusb, got error %s", libusb_error_name(r));
         return false;
     }
-
-    this->mDeviceHandle = libusb_open_device_with_vid_pid(NULL, VENDORID, PRODUCTID);
+    this->mDeviceHandle = libusb_open_device_with_vid_pid(mContext, VENDORID, PRODUCTID);
     if (this->mDeviceHandle == NULL) {
         if (!quiet)
         {
@@ -768,13 +802,19 @@ void LabToolDeviceComm::probe()
             "480 Mbit/s (USB HighSpeed)", "5000 Mbit/s (USB SuperSpeed)"};
 
         bus = libusb_get_bus_number(dev);
-        r = libusb_get_port_path(NULL, dev, port_path, sizeof(port_path));
+#if (defined(LIBUSB_HAS_PORT_PATH_API))
+        r = libusb_get_port_path(mContext, dev, port_path, sizeof(port_path));
         if (r > 0) {
             qDebug("[Probe] bus: %d, port path from HCD: %d", bus, port_path[0]);
             for (i=1; i<r; i++) {
                 qDebug("->%d", port_path[i]);
             }
         }
+#else /* (defined(LIBUSB_HAS_PORT_PATH_API)) */
+        /* Touch unused variables. */
+        (void)bus; (void)port_path;
+        qDebug("libusb doesn't provide hub-port tree path API.");
+#endif /* (defined(LIBUSB_HAS_PORT_PATH_API)) */
         r = libusb_get_device_speed(dev);
         if ((r<0) || (r>4)) r=0;
         qDebug("[Probe] speed: %s", speed_name[r]);

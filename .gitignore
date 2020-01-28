@@ -62,6 +62,8 @@ Makefile*
 app/LabTool
 app/LabTool.exe
 
+app/LabTool-Ubuntu1204
+
 # VIM
 *.swp
 *.swo
