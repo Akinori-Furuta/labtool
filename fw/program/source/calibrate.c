@@ -197,21 +197,21 @@ static uint32_t stats[2][NUMBER_OF_STATS];
  *****************************************************************************/
 static uint16_t calibrate_12BitCalibratedDAC(int ch, int wantedmv)
 {
-  double a;
-  double b;
-  double wanted = wantedmv;
-  double tmp;
-  double vOut1 = calibrationResult.userOut[ch][0]; // low level
-  double vOut2 = calibrationResult.userOut[ch][2]; // high level
-  double hex1 = calibrationResult.dacValOut[0]; //256; // -2.75V
-  double hex2 = calibrationResult.dacValOut[2]; //768; // +2.75V
+  float a;
+  float b;
+  float wanted = wantedmv;
+  float tmp;
+  float vOut1 = calibrationResult.userOut[ch][0]; // low level
+  float vOut2 = calibrationResult.userOut[ch][2]; // high level
+  float hex1 = calibrationResult.dacValOut[0]; //256; // -2.75V
+  float hex2 = calibrationResult.dacValOut[2]; //768; // +2.75V
   uint32_t res;
 
-  wanted = wanted / 1000.0; // convert from mV to V
-  vOut1  = vOut1 / 1000.0; // convert from mV to V
-  vOut2  = vOut2 / 1000.0; // convert from mV to V
+  wanted = wanted / 1000.0f; // convert from mV to V
+  vOut1  = vOut1 / 1000.0f; // convert from mV to V
+  vOut2  = vOut2 / 1000.0f; // convert from mV to V
 
-  a = (vOut1 - (vOut2*hex1/ hex2)) / (1 - (hex1/hex2));
+  a = (vOut1 - (vOut2*hex1/ hex2)) / (1.0f - (hex1/hex2));
   b = (vOut2 - a) / hex2;
 
   // result is: hexVal = (vOut - A) / B
@@ -865,16 +865,16 @@ const calib_result_t* calibrate_GetActiveCalibrationData(void)
  * @param [out] b   Scale factor B
  *
  *****************************************************************************/
-void calibrate_GetFactorsForDAC(int ch, double* a, double* b)
+void calibrate_GetFactorsForDAC(int ch, float* a, float* b)
 {
-  double vOut1 = calibrationResult.userOut[ch][0]; // low level
-  double vOut2 = calibrationResult.userOut[ch][2]; // high level
-  double hex1 = calibrationResult.dacValOut[0]; //256; // -2.5V
-  double hex2 = calibrationResult.dacValOut[2]; //768; // +2.5V
+  float vOut1 = calibrationResult.userOut[ch][0]; // low level
+  float vOut2 = calibrationResult.userOut[ch][2]; // high level
+  float hex1 = calibrationResult.dacValOut[0]; //256; // -2.5V
+  float hex2 = calibrationResult.dacValOut[2]; //768; // +2.5V
 
-  vOut1  = vOut1 / 1000.0; // convert from mV to V
-  vOut2  = vOut2 / 1000.0; // convert from mV to V
+  vOut1  = vOut1 / 1000.0f; // convert from mV to V
+  vOut2  = vOut2 / 1000.0f; // convert from mV to V
 
-  *a = (vOut1 - (vOut2*hex1/ hex2)) / (1 - (hex1/hex2));
+  *a = (vOut1 - (vOut2*hex1/ hex2)) / (1.0f - (hex1/hex2));
   *b = (vOut2 - *a) / hex2;
 }

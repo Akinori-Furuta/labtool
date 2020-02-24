@@ -115,10 +115,10 @@ typedef struct
   uint16_t idxLUT;
 
   /*! Calibration parameter A */
-  double calib_a;
+  float calib_a;
 
   /*! Calibration parameter B */
-  double calib_b;
+  float calib_b;
 
 } dac_setup_t;
 
@@ -319,16 +319,16 @@ static cmd_status_t gen_dac_SetupLUT(const gen_dac_one_ch_cfg_t * const cfg, uin
 {
   int i;
   int val;
-  float dcOffset = cfg->dcOffset / 1000.0;
-  float amplitude = cfg->amplitude / 1000.0;
+  float dcOffset = cfg->dcOffset / 1000.0f;
+  float amplitude = cfg->amplitude / 1000.0f;
   dac_setup_t* dacSetup = &(channels[ch]);
 
   if (cfg->waveform == GEN_DAC_CFG_WAVE_SINUS)
   {
     for (i = 0; i < lutSize; i++)
     {
-      float deg = (i * 360.0)/lutSize;
-      float rad = (deg * 3.141519) / 180.0;
+      float deg = (i * 360.0f)/lutSize;
+      float rad = (deg * 3.1415192653589f) / 180.0f;
       float sin = sinf(rad);
 
       // change amplitude
@@ -360,11 +360,11 @@ static cmd_status_t gen_dac_SetupLUT(const gen_dac_one_ch_cfg_t * const cfg, uin
     for (i = 0; i < lutSize; i++)
     {
       float t = i/((float)lutSize);
-      float a = 1;
-      float x = fabs(2 * (t/a - floorf(t/a + 0.5)));
+      float a = 1.0f;
+      float x = fabs(2.0f * (t/a - floorf(t/a + 0.5f)));
 
       // move from 0..1 to -1..1 and change amplitude
-      x = (x - 0.5) * 2 * amplitude;
+      x = (x - 0.5f) * 2.0f * amplitude;
 
       // apply calibration
       val = (x + dcOffset - channels[ch].calib_a) / channels[ch].calib_b;
@@ -427,8 +427,8 @@ static cmd_status_t gen_dac_SetupLUT(const gen_dac_one_ch_cfg_t * const cfg, uin
     for (i = 0; i < lutSize; i++)
     {
       float t = i/((float)lutSize);
-      float a = 1;
-      float x = 2 * (t/a - floorf(t/a + 0.5));
+      float a = 1.0f;
+      float x = 2.0f * (t/a - floorf(t/a + 0.5f));
 
       // change amplitude, and correct if it is an inverse sawtooth
       x = x * mul * amplitude;
@@ -516,10 +516,9 @@ static void gen_dac_SetupTimer(uint32_t prescale, LPC_TIMERn_Type* tim)
 void gen_dac_Init(void)
 {
   spi_dac_init();
-
   // Get current calibration data
-  calibrate_GetFactorsForDAC(0, &channels[0].calib_a, &channels[0].calib_b);
-  calibrate_GetFactorsForDAC(1, &channels[1].calib_a, &channels[1].calib_b);
+  calibrate_GetFactorsForDAC(0, &(channels[0].calib_a), &(channels[0].calib_b));
+  calibrate_GetFactorsForDAC(1, &(channels[1].calib_a), &(channels[1].calib_b));
 }
 
 /**************************************************************************//**

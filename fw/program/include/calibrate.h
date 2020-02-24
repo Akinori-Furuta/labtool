@@ -82,6 +82,6 @@ cmd_status_t calibrate_StoreCalibrationData(const calib_result_t * const data);
 cmd_status_t calibrate_EraseCalibrationData(void);
 const calib_result_t* calibrate_GetActiveCalibrationData(void);
 
-void calibrate_GetFactorsForDAC(int ch, double* a, double* b);
+void calibrate_GetFactorsForDAC(int ch, float* a, float* b);
 #endif /* end __CALIBRATE_H */
 
