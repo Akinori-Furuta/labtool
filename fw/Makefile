@@ -1,3 +1,4 @@
+# Makefile using gcc arm-none-eabi-* on linux
 GCC_BIN =
 PROJECT = firmware
 USB_OBJS = ./Lib_USB/LPCUSBLib/Drivers/USB/Core/DeviceStandardReq.o \
@@ -61,12 +62,12 @@ else
    endif
 endif
 
-CPU = -mcpu=cortex-m4 -mthumb
+CPU = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard
 CC_FLAGS = $(CPU) -c -Os -fno-common -fmessage-length=0 -Wall -fno-exceptions -ffunction-sections -fdata-sections 
 CC_SYMBOLS = -DCORE_M4 -DUSE_SPIFI_LIB -D__LPC43XX__ -DUSB_DEVICE_ONLY
 
-LD_FLAGS = -mcpu=cortex-m4 -mthumb -Wl,--gc-sections --specs=nano.specs -u _printf_float -u _scanf_float
-LD_SYS_LIBS = -lstdc++ -lsupc++ -lm -lc -lgcc -lnosys
+LD_FLAGS = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -Wl,--gc-sections --specs=nano.specs
+LD_SYS_LIBS = -lc -lgcc -lnosys
 
 all: $(PROJECT).bin
 
