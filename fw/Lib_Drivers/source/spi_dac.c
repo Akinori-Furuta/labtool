@@ -124,17 +124,7 @@ void spi_dac_write(uint16_t data)
  *****************************************************************************/
 void spi_dac_stop(void)
 {
-  SSP_DATA_SETUP_Type sspCfg;
-  uint16_t data = SPI_DAC_VALUE(SPI_DAC_OUT_A, 0) | (1<<14) | (1<<13); // Sets bit 13 and 14 to power down outputs
-
-  CS_ON;
-
-  sspCfg.tx_data = &data;
-  sspCfg.rx_data = NULL;
-  sspCfg.length  = 2;
-
-  SSP_ReadWrite(SSP_PORT, &sspCfg, SSP_TRANSFER_POLLING);
-
-  CS_OFF;
+  /* Set near 0V position. */
+  spi_dac_write(SPI_DAC_AB_CODE(0, SPI_DAC_FORMAT_CODE((SPI_DAC_MAX + 1) / 2)));
+  spi_dac_write(SPI_DAC_AB_CODE(1, SPI_DAC_FORMAT_CODE((SPI_DAC_MAX + 1) / 2)));
 }
-
