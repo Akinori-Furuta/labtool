@@ -16,6 +16,7 @@
 #ifndef LABTOOLCALIBRATIONDATA_H
 #define LABTOOLCALIBRATIONDATA_H
 
+#include "device/labtool/labtooldevicespec.h"
 #include <qglobal.h>
 #include <QString>
 
@@ -34,22 +35,24 @@ private:
       quint32 cmd;            /*!< Marker used by the protocol */
       quint32 checksum;       /*!< Checksum to assure correct read/write to EEPROM */
       quint32 version;        /*!< Future proof the data by adding a version number */
-      quint32 dacValOut[3];   /*!< DAC values in 10-bit format used for calibration of analog out */
-      int     userOut[2][3];  /*!< User's measured analog output in mV for dacValOut's values */
+      quint32 dacValOut[LabToolDeviceSpec::ANALOG_IN_CAL_NUMS];   /*!< DAC values in 10-bit format used for calibration of analog out */
+      int     userOut[LabToolDeviceSpec::ANALOG_IN_CHANNELS][LabToolDeviceSpec::ANALOG_IN_CAL_NUMS];  /*!< User's measured analog output in mV for dacValOut's values */
 
-      int     voltsInLow[8];  /*!< Analog output values in mV used for calibration of analog in for each V/div */
-      int     voltsInHigh[8]; /*!< Analog output values in mV used for calibration of analog in for each V/div */
-      quint32 inLow[2][8];    /*!< Measured analog in for each channel and V/div combo at low output*/
-      quint32 inHigh[2][8];   /*!< Measured analog in for each channel and V/div combo at high output*/
+      /* Both voltsInLow and voltsInHigh are target value, there are not actual values. */
+      int     voltsInLow[LabToolDeviceSpec::ANALOG_IN_RANGES];  /*!< Analog output values in mV used for calibration of analog in for each V/div */
+      int     voltsInHigh[LabToolDeviceSpec::ANALOG_IN_RANGES]; /*!< Analog output values in mV used for calibration of analog in for each V/div */
+      quint32 inLow[LabToolDeviceSpec::ANALOG_IN_CHANNELS][LabToolDeviceSpec::ANALOG_IN_RANGES];    /*!< Measured analog in for each channel and V/div combo at low output*/
+      quint32 inHigh[LabToolDeviceSpec::ANALOG_IN_CHANNELS][LabToolDeviceSpec::ANALOG_IN_RANGES];   /*!< Measured analog in for each channel and V/div combo at high output*/
     };
 
-    double mCalibA[2][8];
-    double mCalibB[2][8];
+    double mCalibA[LabToolDeviceSpec::ANALOG_IN_CHANNELS][LabToolDeviceSpec::ANALOG_IN_RANGES];
+    double mCalibB[LabToolDeviceSpec::ANALOG_IN_CHANNELS][LabToolDeviceSpec::ANALOG_IN_RANGES];
     calib_result mRawResult;
     bool mReasonableData;
 
 private:
     static bool isInfiniteOrNan(double d);
+    double estimateActualDacVoltage(int ch, int targetMv);
 
 public:
     LabToolCalibrationData(const quint8* data);

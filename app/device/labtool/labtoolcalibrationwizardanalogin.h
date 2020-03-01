@@ -19,6 +19,7 @@
 #include <QWizardPage>
 #include <QLabel>
 
+#include "labtooldevicespec.h"
 #include "labtooldevicecomm.h"
 
 class LabToolCalibrationWizardAnalogIn : public QWizardPage
@@ -46,9 +47,9 @@ private:
     QLabel *mLabel;
     QLabel *mLabelResult;
 
-    double mA0[3];
-    double mA1[3];
-    int mLevel[3];
+    double mA0[LabToolDeviceSpec::ANALOG_IN_CAL_NUMS];
+    double mA1[LabToolDeviceSpec::ANALOG_IN_CAL_NUMS];
+    int mLevel[LabToolDeviceSpec::ANALOG_IN_CAL_NUMS];
 
     bool mIsCalibrated;
 };

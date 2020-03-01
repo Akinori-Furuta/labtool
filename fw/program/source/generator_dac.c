@@ -115,10 +115,12 @@ typedef struct
   uint16_t idxLUT;
 
   /*! Calibration parameter A */
-  float calib_a;
+  float calib_a; /* DAC output voltage at DACin = 0. */
 
   /*! Calibration parameter B */
-  float calib_b;
+  float calib_b; /* DAC resolution V / DACin */
+
+  /* DACin =  (TargetOutputVoltage - calib_a) / calib_b */
 
 } dac_setup_t;
 
@@ -321,7 +323,13 @@ static cmd_status_t gen_dac_SetupLUT(const gen_dac_one_ch_cfg_t * const cfg, uin
   int val;
   float dcOffset = cfg->dcOffset / 1000.0f;
   float amplitude = cfg->amplitude / 1000.0f;
+  float calib_a;
+  float calib_b;
+
   dac_setup_t* dacSetup = &(channels[ch]);
+
+  calib_a = channels[ch].calib_a;
+  calib_b = channels[ch].calib_b;
 
   if (cfg->waveform == GEN_DAC_CFG_WAVE_SINUS)
   {
@@ -335,12 +343,10 @@ static cmd_status_t gen_dac_SetupLUT(const gen_dac_one_ch_cfg_t * const cfg, uin
       sin = sin * amplitude;//cfg->amplitude / MAX_AMPLITUDE;
 
       // apply calibration
-      val = (sin + dcOffset - channels[ch].calib_a) / channels[ch].calib_b;
+      val = (sin + dcOffset - calib_a) / calib_b;
+      val = SPI_DAC_CLIP_VALUE(val);
 
-      // move the 10 value bits into the upper 10-bits of a 12-bit value
-      val = val << 2;
-
-      dacSetup->LUT_BUFFER[i] = SPI_DAC_VALUE(ch, val);
+      dacSetup->LUT_BUFFER[i] = SPI_DAC_AB_CODE(ch, SPI_DAC_FORMAT_CODE(val));
     }
   }
   else if (cfg->waveform == GEN_DAC_CFG_WAVE_TRIANGLE)
@@ -367,42 +373,41 @@ static cmd_status_t gen_dac_SetupLUT(const gen_dac_one_ch_cfg_t * const cfg, uin
       x = (x - 0.5f) * 2.0f * amplitude;
 
       // apply calibration
-      val = (x + dcOffset - channels[ch].calib_a) / channels[ch].calib_b;
+      val = (x + dcOffset - calib_a) / calib_b;
+      val = SPI_DAC_CLIP_VALUE(val);
 
-      // move the 10 value bits into the upper 10-bits of a 12-bit value
-      val = val << 2;
-
-      dacSetup->LUT_BUFFER[i] = SPI_DAC_VALUE(ch, val);
+      dacSetup->LUT_BUFFER[i] = SPI_DAC_AB_CODE(ch, SPI_DAC_FORMAT_CODE(val));
     }
   }
   else if (cfg->waveform == GEN_DAC_CFG_WAVE_SQUARE)
   {
     // Calculate the square wave's high point
     float tmp = (dcOffset + amplitude);
+    uint16_t dac_reg;
 
     // apply calibration
-    val = (tmp - channels[ch].calib_a) / channels[ch].calib_b;
+    val = (tmp - calib_a) / calib_b;
+    val = SPI_DAC_CLIP_VALUE(val);
 
-    // move the 10 value bits into the upper 10-bits of a 12-bit value
-    val = val << 2;
+    dac_reg = SPI_DAC_AB_CODE(ch, SPI_DAC_FORMAT_CODE(val));
 
     for (i = 0; i < lutSize/2; i++)
     {
-      dacSetup->LUT_BUFFER[i] = SPI_DAC_VALUE(ch, val);
+      dacSetup->LUT_BUFFER[i] = dac_reg;
     }
 
     // Calculate the square wave's low point
     tmp = (dcOffset - amplitude);
 
     // apply calibration
-    val = (tmp - channels[ch].calib_a) / channels[ch].calib_b;
+    val = (tmp - calib_a) / calib_b;
+    val = SPI_DAC_CLIP_VALUE(val);
 
-    // move the 10 value bits into the upper 10-bits of a 12-bit value
-    val = val << 2;
+    dac_reg = SPI_DAC_AB_CODE(ch, SPI_DAC_FORMAT_CODE(val));
 
     for (; i < lutSize; i++)
     {
-      dacSetup->LUT_BUFFER[i] = SPI_DAC_VALUE(ch, val);
+      dacSetup->LUT_BUFFER[i] = dac_reg;
     }
   }
   else if ((cfg->waveform == GEN_DAC_CFG_WAVE_SAWTOOTH) ||
@@ -434,12 +439,10 @@ static cmd_status_t gen_dac_SetupLUT(const gen_dac_one_ch_cfg_t * const cfg, uin
       x = x * mul * amplitude;
 
       // apply calibration
-      val = (x - channels[ch].calib_a) / channels[ch].calib_b;
+      val = (x - calib_a) / calib_b;
+      val = SPI_DAC_CLIP_VALUE(val);
 
-      // move the 10 value bits into the upper 10-bits of a 12-bit value
-      val = val << 2;
-
-      dacSetup->LUT_BUFFER[i] = SPI_DAC_VALUE(ch, val);
+      dacSetup->LUT_BUFFER[i] = SPI_DAC_AB_CODE(ch, SPI_DAC_FORMAT_CODE(val));
     }
   }
   else if (cfg->waveform == GEN_DAC_CFG_WAVE_LEVEL)
@@ -447,12 +450,10 @@ static cmd_status_t gen_dac_SetupLUT(const gen_dac_one_ch_cfg_t * const cfg, uin
     // Find actual amplitude, which for a level type is based on offset
 
     // apply calibration
-    val = (dcOffset - channels[ch].calib_a) / channels[ch].calib_b;
+    val = (dcOffset - calib_a) / calib_b;
+    val = SPI_DAC_CLIP_VALUE(val);
 
-    // move the 10 value bits into the upper 10-bits of a 12-bit value
-    val = val << 2;
-
-    dacSetup->LUT_BUFFER[0] = SPI_DAC_VALUE(ch, val);
+    dacSetup->LUT_BUFFER[0] = SPI_DAC_AB_CODE(ch, SPI_DAC_FORMAT_CODE(val));
   }
   else
   {

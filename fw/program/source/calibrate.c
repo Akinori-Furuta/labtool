@@ -25,6 +25,8 @@
  * Includes
  *****************************************************************************/
 
+#include <stdint.h>
+
 #include "lpc43xx.h"
 
 #include "lpc43xx_scu.h"
@@ -57,9 +59,9 @@ typedef struct
 /*! @brief Parameters for calibration of analog inputs. */
 typedef struct
 {
-  uint32_t levels[3]; /*!< DAC values in 10-bit format used for analog out calibration */
-  int measA0[3];      /*!< Meassured A0 value for each of the levels. Values is in mv */
-  int measA1[3];      /*!< Meassured A1 value for each of the levels. Values is in mv */
+  uint32_t levels[ANALOG_IN_CAL_NUMS]; /*!< DAC values in 10-bit format used for analog out calibration */
+  int measA0[ANALOG_IN_CAL_NUMS];      /*!< Meassured A0 value for each of the levels. Values is in mv */
+  int measA1[ANALOG_IN_CAL_NUMS];      /*!< Meassured A1 value for each of the levels. Values is in mv */
 } calib_analog_in_parameters_t;
 
 /*! @brief Used as index when collecting statistics for the calibration data. */
@@ -119,6 +121,11 @@ static const calib_result_t DEFAULT_CALIBRATION = {
     { 2500, 0, -2500 },
     { 2500, 0, -2500 },
   },
+/*! Low side DAC output voltages in mV.
+ *  These values are "target" value.
+ *  Inverts these voltages and applies to High side DAC output voltages.
+ *  Note: Actual values are slight differ from these values.
+ */
   .voltsInLow = { -80, -200, -400, -800, -2000, -2500, -2500, -2500 },
   .voltsInHigh = { 80,  200,  400,  800,  2000,  2500,  2500,  2500 },
   .inLow = {
@@ -160,7 +167,7 @@ static int currentVdivIndex = -1;
 static Bool measuringLowLevel;
 
 /*! Statistics gathered during calibration of analog inputs. */
-static uint32_t stats[2][NUMBER_OF_STATS];
+static uint32_t stats[ANALOG_IN_CHANNELS][NUMBER_OF_STATS];
 
 /******************************************************************************
  * Forward Declarations of Local Functions
@@ -182,43 +189,54 @@ static uint32_t stats[2][NUMBER_OF_STATS];
  * The output value is calculated for the specified channel and is based on
  * the measurements that the user took during calibration of the analog outputs.
  *
- * A = (vout1 - (vout2*hex1/hex2)) / (1 - (hex1/hex2))
- * B = (vout2 - a) / hex2
+ * b = (vOutH - vOutL) / (hexH - hexL)
+ * a = (vOutL - b * hexL);
  *
- * and then
+ * here,
+ * b is the DAC ratio "Volts / DACInValue"
+ * a is the DAC output voltage at DACInValue = 0
  *
- * hexOut = (vWanted - a) / b
+ * We can get DACinValue (hexOut) to output vWanted voltage by
+ * following expression.
  *
- * @param [in] ch         The channel to calculate for
- * @param [in] wantedmv   The wanted output in mV
+ * hexOut = (wantedmv - a) / b
  *
- * @return The DAC's value as the upper 10 bits of a 12 bit value
+ * @param [in] ch          The channel to calculate for
+ * @param [in] wantedmv    The wanted output in mV
  *
+ * @return The encoded DAC's input.
+ *
+ * @note The actual output voltage is slight differ from wantedmv.
+ *       It contains digitizing error.
+ *       So DO NOT use wantedmv to calibrate analog input, use
+ *       actual output voltage to calibrate analog input.
  *****************************************************************************/
-static uint16_t calibrate_12BitCalibratedDAC(int ch, int wantedmv)
+
+static uint16_t calibrate_12BitCalibratedDAC(int ch, int32_t wantedmv)
 {
   float a;
   float b;
   float wanted = wantedmv;
-  float tmp;
-  float vOut1 = calibrationResult.userOut[ch][0]; // low level
-  float vOut2 = calibrationResult.userOut[ch][2]; // high level
-  float hex1 = calibrationResult.dacValOut[0]; //256; // -2.75V
-  float hex2 = calibrationResult.dacValOut[2]; //768; // +2.75V
-  uint32_t res;
+  float vOutL = calibrationResult.userOut[ch][ANALOG_IN_CAL_LOW];  // low level
+  float vOutH = calibrationResult.userOut[ch][ANALOG_IN_CAL_HIGH]; // high level
+  float hexL =  calibrationResult.dacValOut[ANALOG_IN_CAL_LOW];  //256; // -2.75V
+  float hexH =  calibrationResult.dacValOut[ANALOG_IN_CAL_HIGH]; //768; // +2.75V
+
+  int32_t  res;
 
   wanted = wanted / 1000.0f; // convert from mV to V
-  vOut1  = vOut1 / 1000.0f; // convert from mV to V
-  vOut2  = vOut2 / 1000.0f; // convert from mV to V
+  vOutL  = vOutL /  1000.0f; // convert from mV to V
+  vOutH  = vOutH /  1000.0f; // convert from mV to V
 
-  a = (vOut1 - (vOut2*hex1/ hex2)) / (1.0f - (hex1/hex2));
-  b = (vOut2 - a) / hex2;
 
-  // result is: hexVal = (vOut - A) / B
-  tmp = (wanted - a) / b;
-  res = tmp;
-  res = (res << 2) & 0xffc;
-  return res;
+  b = (vOutH - vOutL) / (hexH - hexL); /* V / DACin */
+  a = (vOutL - (b * hexL)); /* The output voltage at DACin=0. */
+
+  // result is: hexVal = (wantedmv - a) / b
+  res = (wanted - a) / b;
+  res = SPI_DAC_CLIP_VALUE(res);
+
+  return SPI_DAC_FORMAT_CODE(res);
 }
 
 
@@ -410,7 +428,7 @@ cmd_status_t calibrate_AnalogIn(uint8_t* cfg, uint32_t size)
     }
 
     params = (calib_analog_in_parameters_t*)cfg;
-    for (i = 0; i < 3; i++)
+    for (i = 0; i < ANALOG_IN_CAL_NUMS; i++)
     {
       calibrationResult.userOut[0][i] = params->measA0[i];
       calibrationResult.userOut[1][i] = params->measA1[i];
@@ -437,7 +455,7 @@ cmd_status_t calibrate_AnalogIn(uint8_t* cfg, uint32_t size)
 
     // Set the target output HIGH voltage in mV for each of the different Volts/div levels.
     // The high levels are the positive 
-    for (i = 0; i < 8; i++)
+    for (i = 0; i < ANALOG_IN_RANGES; i++)
     {
       calibrationResult.voltsInHigh[i] = - calibrationResult.voltsInLow[i];
     }
@@ -499,16 +517,20 @@ void calibrate_Stop(void)
  *****************************************************************************/
 void calibrate_Feed(void)
 {
+  const int sleepStepMs = 1 /* ms */;
   static int sleepTime = 0;
-  uint32_t tmpA, tmpB;
+  uint16_t tmpA, tmpB;
 
   if (calibrationState == CALIB_STATE_AIN_SETUP_LOW)
   {
-    tmpA = calibrate_12BitCalibratedDAC(0, calibrationResult.voltsInLow[currentVdivIndex]);
-    spi_dac_write(SPI_DAC_VALUE(SPI_DAC_OUT_A, tmpA));
-    tmpB = calibrate_12BitCalibratedDAC(1, calibrationResult.voltsInLow[currentVdivIndex]);
-    spi_dac_write(SPI_DAC_VALUE(SPI_DAC_OUT_B, tmpB));
-    log_d("Changed output to %dmV  (A 0x%03x, B 0x%03x)", calibrationResult.voltsInLow[currentVdivIndex], tmpA, tmpB);
+    int32_t targetOutputMv;
+
+    targetOutputMv = calibrationResult.voltsInLow[currentVdivIndex];
+    tmpA = calibrate_12BitCalibratedDAC(0, targetOutputMv);
+    spi_dac_write(SPI_DAC_AB_CODE(SPI_DAC_OUT_A, tmpA));
+    tmpB = calibrate_12BitCalibratedDAC(1, targetOutputMv);
+    spi_dac_write(SPI_DAC_AB_CODE(SPI_DAC_OUT_B, tmpB));
+    log_d("Changed output to %dmV  (A 0x%03x, B 0x%03x)", targetOutputMv, tmpA, tmpB);
 
     measuringLowLevel = TRUE;
 
@@ -518,11 +540,14 @@ void calibrate_Feed(void)
   }
   else if (calibrationState == CALIB_STATE_AIN_SETUP_HIGH)
   {
-    tmpA = calibrate_12BitCalibratedDAC(0, calibrationResult.voltsInHigh[currentVdivIndex]);
-    spi_dac_write(SPI_DAC_VALUE(SPI_DAC_OUT_A, tmpA));
-    tmpB = calibrate_12BitCalibratedDAC(1, calibrationResult.voltsInHigh[currentVdivIndex]);
-    spi_dac_write(SPI_DAC_VALUE(SPI_DAC_OUT_B, tmpB));
-    log_d("Changed output to %dmV  (A 0x%03x, B 0x%03x)", calibrationResult.voltsInHigh[currentVdivIndex], tmpA, tmpB);
+    int32_t targetOutputMv;
+
+    targetOutputMv = calibrationResult.voltsInHigh[currentVdivIndex];
+    tmpA = calibrate_12BitCalibratedDAC(0, targetOutputMv);
+    spi_dac_write(SPI_DAC_AB_CODE(SPI_DAC_OUT_A, tmpA));
+    tmpB = calibrate_12BitCalibratedDAC(1, targetOutputMv);
+    spi_dac_write(SPI_DAC_AB_CODE(SPI_DAC_OUT_B, tmpB));
+    log_d("Changed output to %dmV  (A 0x%03x, B 0x%03x)", targetOutputMv, tmpA, tmpB);
 
     measuringLowLevel = FALSE;
 
@@ -555,8 +580,8 @@ void calibrate_Feed(void)
       // This is not exact, but that is not needed. The important thing
       // is that a long sleep (ca 1 second) can be divided into small
       // chunks allowing USB polling at the same time
-      TIM_Waitms(10);
-      sleepTime -= 10;
+      TIM_Waitms(sleepStepMs);
+      sleepTime -= sleepStepMs;
     }
   }
   else if (calibrationState == CALIB_STATE_STOPPING)
@@ -591,18 +616,19 @@ void calibrate_ProcessResult(cmd_status_t status, circbuff_t* buff)
     return;
   }
 
-  memset(stats, 0, sizeof(uint32_t)*2*NUMBER_OF_STATS);
+  memset(stats, 0, sizeof(stats));
   stats[0][STATS_MIN] = stats[1][STATS_MIN] = 0xffffff; // way above any valid value
 
   // case where the circular buffer hasn't wrapped yet
   if (buff->empty)
   {
-    numSamples = buff->last/2; //last is in bytes
+    numSamples = buff->last / ANALOG_IN_CHANNELS; //last is in bytes
     pSamples = (uint16_t*)buff->data;
     while (--numSamples > 0)
     {
-      ch = (*pSamples & 0x7000)>>12;
-      tmp = *pSamples & 0x0fff;
+      tmp = *pSamples;
+      ch = (tmp & 0x7000) >> 12;
+      tmp &= 0x0fff;
 
       stats[ch][STATS_NUM]++;
       stats[ch][STATS_SUM] += tmp;
@@ -620,12 +646,13 @@ void calibrate_ProcessResult(cmd_status_t status, circbuff_t* buff)
   }
   else
   {
-    numSamples = (buff->size - buff->last)/2; //size is in bytes
+    numSamples = (buff->size - buff->last) / ANALOG_IN_CHANNELS; //size is in bytes
     pSamples = (uint16_t*)circbuff_GetFirstAddr(buff);
     while (--numSamples > 0)
     {
-      ch = (*pSamples & 0x7000)>>12;
-      tmp = *pSamples & 0x0fff;
+      tmp = *pSamples;
+      ch = (tmp & 0x7000) >> 12;
+      tmp &= 0x0fff;
 
       stats[ch][STATS_NUM]++;
       stats[ch][STATS_SUM] += tmp;
@@ -640,12 +667,13 @@ void calibrate_ProcessResult(cmd_status_t status, circbuff_t* buff)
 
       pSamples++;
     }
-    numSamples = buff->last/2; //last is in bytes
+    numSamples = buff->last / ANALOG_IN_CHANNELS; //last is in bytes
     pSamples = (uint16_t*)buff->data;
     while (--numSamples > 0)
     {
-      ch = (*pSamples & 0x7000)>>12;
-      tmp = *pSamples & 0x0fff;
+      tmp = *pSamples;
+      ch = (tmp & 0x7000) >> 12;
+      tmp &= 0x0fff;
 
       stats[ch][STATS_NUM]++;
       stats[ch][STATS_SUM] += tmp;
@@ -662,7 +690,7 @@ void calibrate_ProcessResult(cmd_status_t status, circbuff_t* buff)
     }
   }
 
-  for (ch = 0; ch < 2; ch++)
+  for (ch = 0; ch < ANALOG_IN_CHANNELS; ch++)
   {
     log_i("Stats: V/div %4dmV: %4dmV: CH%d: Num: %5u, Min %4u (0x%03x), Max %4u (0x%03x), Avg: %4u (0x%03x)\r\n",
           cap_vadc_GetMilliVoltsPerDiv(ch),
@@ -692,7 +720,7 @@ void calibrate_ProcessResult(cmd_status_t status, circbuff_t* buff)
   else
   {
     currentVdivIndex++;
-    if (currentVdivIndex == 8)
+    if (currentVdivIndex >= ANALOG_IN_RANGES)
     {
       // done with all measurements
       usb_handler_SendCalibrationResult(&calibrationResult);
@@ -867,14 +895,14 @@ const calib_result_t* calibrate_GetActiveCalibrationData(void)
  *****************************************************************************/
 void calibrate_GetFactorsForDAC(int ch, float* a, float* b)
 {
-  float vOut1 = calibrationResult.userOut[ch][0]; // low level
-  float vOut2 = calibrationResult.userOut[ch][2]; // high level
-  float hex1 = calibrationResult.dacValOut[0]; //256; // -2.5V
-  float hex2 = calibrationResult.dacValOut[2]; //768; // +2.5V
+  float vOutL = calibrationResult.userOut[ch][ANALOG_IN_CAL_LOW];  // low level
+  float vOutH = calibrationResult.userOut[ch][ANALOG_IN_CAL_HIGH]; // high level
+  float hexL = calibrationResult.dacValOut[ANALOG_IN_CAL_LOW];     //256; // -2.5V
+  float hexH = calibrationResult.dacValOut[ANALOG_IN_CAL_HIGH];    //768; // +2.5V
+  float r;
 
-  vOut1  = vOut1 / 1000.0f; // convert from mV to V
-  vOut2  = vOut2 / 1000.0f; // convert from mV to V
-
-  *a = (vOut1 - (vOut2*hex1/ hex2)) / (1.0f - (hex1/hex2));
-  *b = (vOut2 - *a) / hex2;
+  r = (vOutH - vOutL) / (hexH - hexL); /* mV / DACin */
+  /* Calculate factors and scale mV to V. */
+  *a = (vOutL - (r * hexL)) / 1000.0f ; /* The output voltage at DACin=0. */
+  *b = r / 1000.0f;
 }

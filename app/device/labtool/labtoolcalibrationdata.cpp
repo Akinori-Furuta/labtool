@@ -16,6 +16,7 @@
 #include "labtoolcalibrationdata.h"
 #include <string.h>
 #include "math.h"
+#include "labtooldevicespec.h"
 
 /*!
     \class LabToolCalibrationData
@@ -44,38 +45,79 @@ LabToolCalibrationData::LabToolCalibrationData(const quint8 *data)
     //
     // Both A and B must be calculated for each channel and for each V/div setting
 
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < LabToolDeviceSpec::ANALOG_IN_RANGES; i++)
     {
-        // convert mV to V
-        double vin1 = mRawResult.voltsInLow[i] / 1000.0;
-        double vin2 = mRawResult.voltsInHigh[i] / 1000.0;
 
-        for (int ch = 0; ch < 2; ch++)
+        for (int ch = 0; ch < LabToolDeviceSpec::ANALOG_IN_CHANNELS; ch++)
         {
-            mCalibB[ch][i] = (vin1 - vin2) / (mRawResult.inLow[ch][i] - mRawResult.inHigh[ch][i]);
-            mCalibA[ch][i] = vin1 - mCalibB[ch][i] * mRawResult.inLow[ch][i];
+
+            double vin1 = estimateActualDacVoltage(ch, mRawResult.voltsInLow[i]);
+            double vin2 = estimateActualDacVoltage(ch, mRawResult.voltsInHigh[i]);
+            double a;
+            double b;
+
+            b = (vin1 - vin2) / (mRawResult.inLow[ch][i] - mRawResult.inHigh[ch][i]);
+            mCalibB[ch][i] = b;
+            a = vin1 - b * mRawResult.inLow[ch][i];
+            mCalibA[ch][i] = a;
 
             if (mReasonableData)
             {
-                if (isInfiniteOrNan(mCalibA[ch][i]))
+                if (isInfiniteOrNan(a))
                 {
                     mReasonableData = false;
                 }
-                else if ((mCalibA[ch][i] < -1000) || (mCalibA[ch][i] > 1000))
+                else if ((a < -1000) || (a > 1000))
                 {
                     mReasonableData = false;
                 }
-                else if (isInfiniteOrNan(mCalibA[ch][i]))
+                else if (isInfiniteOrNan(b))
                 {
                     mReasonableData = false;
                 }
-                else if ((mCalibB[ch][i] < -1000) || (mCalibB[ch][i] > 1000))
+                else if ((b < -1000) || (b > 1000))
                 {
                     mReasonableData = false;
                 }
             }
         }
     }
+}
+
+/*! Estimate actual DAC output voltage from target output voltage.
+ *
+ * @param ch DAC channel number 0..1
+ * @param targetMv target DAC output voltage in mV.
+ *
+ * @retval double estimated actual DAC output voltage.
+ */
+double LabToolCalibrationData::estimateActualDacVoltage(int ch, int targetMv)
+{   /* Note: Calculate in float as LabTool device does. */
+    float vL; /* Measured DAC output voltage at Low Position */
+    float vH; /* Measured DAC output voltage at High Position */
+    float dL; /* DACin value at Low position. */
+    float dH; /* DACin value at High position. */
+    float a;  /* Estimated DAC output voltage at DACin value = 0 */
+    float b;  /* mVolts / DACin */
+    float vActual;
+    int    dacIn;
+
+    dL = mRawResult.dacValOut[LabToolDeviceSpec::ANALOG_IN_CAL_LOW];
+    dH = mRawResult.dacValOut[LabToolDeviceSpec::ANALOG_IN_CAL_HIGH];
+    vL = mRawResult.userOut[ch][LabToolDeviceSpec::ANALOG_IN_CAL_LOW];
+    vH = mRawResult.userOut[ch][LabToolDeviceSpec::ANALOG_IN_CAL_HIGH];
+
+    /* Note: We calculate almost formulas in mV scale. */
+
+    b = (vH - vL) / (dH - dL);
+    a = vL - b * dL;
+
+    dacIn = (targetMv - a) / b;
+    dacIn = LabToolDeviceSpec::spiDacClipValue(dacIn);
+
+    vActual = a + b * dacIn;
+    /* Scale mV to V. */
+    return vActual / 1000.0f;
 }
 
 /*!

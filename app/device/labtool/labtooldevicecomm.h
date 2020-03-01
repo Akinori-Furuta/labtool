@@ -17,6 +17,7 @@
 #define LABTOOLDEVICECOMM_H
 
 #include <QObject>
+#include "device/labtool/labtooldevicespec.h"
 #include "labtooldevicecommthread.h"
 #include "labtooldevicetransfer.h"
 #include "labtoolcalibrationdata.h"
@@ -70,7 +71,7 @@ public:
 
     void calibrateInit();
     void calibrateAnalogOut(quint32 level);
-    void calibrateAnalogIn(double a0[3], double a1[3], int levels[3]);
+    void calibrateAnalogIn(double a0[LabToolDeviceSpec::ANALOG_IN_CAL_NUMS], double a1[LabToolDeviceSpec::ANALOG_IN_CAL_NUMS], int levels[LabToolDeviceSpec::ANALOG_IN_CAL_NUMS]);
     void calibrationSaveData(LabToolCalibrationData*);
     void calibrationRestoreDefaults();
     void calibrationEnd();

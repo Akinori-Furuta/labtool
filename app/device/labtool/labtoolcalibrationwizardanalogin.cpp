@@ -59,8 +59,12 @@ LabToolCalibrationWizardAnalogIn::LabToolCalibrationWizardAnalogIn(QWidget *pare
 
     setLayout(layout);
 
-    mA0[0] = mA0[1] = mA0[2] = 0;
-    mA1[0] = mA1[1] = mA1[2] = 0;
+    mA0[LabToolDeviceSpec::ANALOG_IN_CAL_LOW] = 0;
+    mA0[LabToolDeviceSpec::ANALOG_IN_CAL_MIDDLE] = 0;
+    mA0[LabToolDeviceSpec::ANALOG_IN_CAL_HIGH] = 0;
+    mA1[LabToolDeviceSpec::ANALOG_IN_CAL_LOW] = 0;
+    mA1[LabToolDeviceSpec::ANALOG_IN_CAL_MIDDLE] = 0;
+    mA1[LabToolDeviceSpec::ANALOG_IN_CAL_HIGH] = 0;
     mLevel[0] = mLevel[1] = mLevel[2] = 0;
     mIsCalibrated = false;
 }
@@ -106,17 +110,17 @@ void LabToolCalibrationWizardAnalogIn::initializePage()
 {
 
     // FIXME: Getting doubles from a QVariant might result in rounding errors.
-    mA0[0] = field("a0LowLevel").toDouble();
-    mA0[1] = field("a0MiddleLevel").toDouble();
-    mA0[2] = field("a0HighLevel").toDouble();
+    mA0[LabToolDeviceSpec::ANALOG_IN_CAL_LOW] =    field("a0LowLevel").toDouble();
+    mA0[LabToolDeviceSpec::ANALOG_IN_CAL_MIDDLE] = field("a0MiddleLevel").toDouble();
+    mA0[LabToolDeviceSpec::ANALOG_IN_CAL_HIGH] =   field("a0HighLevel").toDouble();
 
-    mA1[0] = field("a1LowLevel").toDouble();
-    mA1[1] = field("a1MiddleLevel").toDouble();
-    mA1[2] = field("a1HighLevel").toDouble();
+    mA1[LabToolDeviceSpec::ANALOG_IN_CAL_LOW] =    field("a1LowLevel").toDouble();
+    mA1[LabToolDeviceSpec::ANALOG_IN_CAL_MIDDLE] = field("a1MiddleLevel").toDouble();
+    mA1[LabToolDeviceSpec::ANALOG_IN_CAL_HIGH] =   field("a1HighLevel").toDouble();
 
-    mLevel[0] = LabToolCalibrationWizardAnalogOut::LOW;
-    mLevel[1] = LabToolCalibrationWizardAnalogOut::MIDDLE;
-    mLevel[2] = LabToolCalibrationWizardAnalogOut::HIGH;
+    mLevel[LabToolDeviceSpec::ANALOG_IN_CAL_LOW] =    LabToolCalibrationWizardAnalogOut::LOW;
+    mLevel[LabToolDeviceSpec::ANALOG_IN_CAL_MIDDLE] = LabToolCalibrationWizardAnalogOut::MIDDLE;
+    mLevel[LabToolDeviceSpec::ANALOG_IN_CAL_HIGH] =   LabToolCalibrationWizardAnalogOut::HIGH;
 
     wizard()->button(QWizard::CustomButton1)->setEnabled(true);
 }

@@ -24,7 +24,7 @@
 /******************************************************************************
  * Includes
  *****************************************************************************/
-
+#include <stdint.h>
 #include "lpc_types.h"
 
 /******************************************************************************
@@ -37,8 +37,28 @@
 /*! @brief DAC output channel B. */
 #define SPI_DAC_OUT_B  (1)
 
+/*! SPI DAC resolution */
+#define SPI_DAC_BITS   (10)
+/*! SPI DAC max value (not CODE). */
+#define SPI_DAC_MAX    ((((0x1) << SPI_DAC_BITS) - 0x1))
+/*! SPI DAC min value (not CODE). */
+#define SPI_DAC_MIN    (0)
+/*! SPI DAC mask value (not CODE). */
+#define SPI_DAC_MASK    ((uint16_t)(((0x1) << SPI_DAC_BITS) - 0x1))
+
 /*! @brief Keep the DAC value within the upper 10-bits of a 12 bit value */
 #define SPI_DAC_LIMIT(__val) ( ((__val) >= 4095) ? 4095 : (((__val) < 4) ? 0 : (__val)) )
+
+/*! Clip DAC value (not CODE).
+ *  Evalute DAC value by argumented type.
+ */
+#define SPI_DAC_CLIP_VALUE(da) (((da) < SPI_DAC_MIN) ? (SPI_DAC_MIN) : (((da) > SPI_DAC_MAX) ? (SPI_DAC_MAX) : (da)))
+
+/*! Format DAC output value to code.
+ *  DAC has 10 bits resolution. To encoded value to code, shift value left
+ *  by 2 bits.
+ */
+#define SPI_DAC_FORMAT_CODE(da) ((((uint16_t)(da)) & SPI_DAC_MASK) << (uint16_t)(2))
 
 /*! @brief Create the 16-bit value to send to the DAC.
  *
@@ -61,8 +81,15 @@
  * @param __val  A 12-bit value with the data in the upper 10-bits
  * @param __out  SPI_DAC_OUT_A or SPI_DAC_OUT_B
  */
-#define SPI_DAC_VALUE(__out, __val) ((0<<15) | ((__out)<<14) | (0<<13) | (1<<12) | (SPI_DAC_LIMIT(__val) & 0xffc))
+#define SPI_DAC_VALUE(__out, __val) ((0<<15) | ((uint16_t)(__out)<<14) | (0<<13) | (1<<12) | (((uint16_t)__val) & 0xffc))
 
+/*! Format DAC A/B selector and DAC code to DAC input resister. */
+#define SPI_DAC_AB_CODE(ab, code) ( \
+	((uint16_t)(0 << 15)) | \
+	((uint16_t)((ab) << 14)) | \
+	((uint16_t)((0 << 13) | (1 << 12))) | \
+	((uint16_t)(code)) \
+	)
 
 /******************************************************************************
  * Functions

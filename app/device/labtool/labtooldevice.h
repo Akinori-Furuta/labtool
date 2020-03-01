@@ -19,6 +19,7 @@
 #include <QObject>
 
 #include "device/device.h"
+#include "device/labtool/labtooldevicespec.h"
 #include "labtoolcapturedevice.h"
 #include "labtoolgeneratordevice.h"
 

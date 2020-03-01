@@ -33,18 +33,28 @@
  * Typedefs and defines
  *****************************************************************************/
 
+#define ANALOG_IN_CHANNELS	(2)
+#define ANALOG_IN_RANGES	(8)
+
+typedef enum {
+  ANALOG_IN_CAL_LOW = 0,
+  ANALOG_IN_CAL_MIDDLE = 1,
+  ANALOG_IN_CAL_HIGH = 2,
+  ANALOG_IN_CAL_NUMS = 3,
+} calib_levels;
+
 /*! @brief The calibration data stored in EEPROM. */
 typedef struct
 {
   uint32_t checksum;       /*!< Checksum to assure correct read/write to EEPROM */
   uint32_t version;        /*!< Future proof the data by adding a version number */
-  uint32_t dacValOut[3];   /*!< DAC values in 10-bit format used for calibration of analog out */
-  int      userOut[2][3];  /*!< User's measured analog output in mV for dacValOut's values */
+  uint32_t dacValOut[ANALOG_IN_CAL_NUMS];   /*!< DAC values in 10-bit format used for calibration of analog out */
+  int      userOut[ANALOG_IN_CHANNELS][ANALOG_IN_CAL_NUMS];  /*!< User's measured analog output in mV for dacValOut's values */
 
-  int      voltsInLow[8];  /*!< Analog output values in mV used for calibration of analog in for each V/div */
-  int      voltsInHigh[8]; /*!< Analog output values in mV used for calibration of analog in for each V/div */
-  uint32_t inLow[2][8];    /*!< Measured analog in for each channel and V/div combo at low output*/
-  uint32_t inHigh[2][8];   /*!< Measured analog in for each channel and V/div combo at high output*/
+  int      voltsInLow[ANALOG_IN_RANGES];  /*!< Analog output values in mV used for calibration of analog in for each V/div */
+  int      voltsInHigh[ANALOG_IN_RANGES]; /*!< Analog output values in mV used for calibration of analog in for each V/div */
+  uint32_t inLow[ANALOG_IN_CHANNELS][ANALOG_IN_RANGES];    /*!< Measured analog in for each channel and V/div combo at low output*/
+  uint32_t inHigh[ANALOG_IN_CHANNELS][ANALOG_IN_RANGES];   /*!< Measured analog in for each channel and V/div combo at high output*/
 } calib_result_t;
 
 /*! @brief Statemachine for the calibration process. */

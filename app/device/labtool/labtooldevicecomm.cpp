@@ -475,10 +475,16 @@ void LabToolDeviceComm::calibrateAnalogIn(double a0[], double a1[], int levels[]
         return;
     }
 
-    int data[9] = {
-        levels[0], levels[1], levels[2],
-        (int)(1000 * a0[0]), (int)(1000 * a0[1]), (int)(1000 * a0[2]),
-        (int)(1000 * a1[0]), (int)(1000 * a1[1]), (int)(1000 * a1[2]),
+    int data[LabToolDeviceSpec::ANALOG_IN_CAL_NUMS * (2 + 1)] = {
+        levels[LabToolDeviceSpec::ANALOG_IN_CAL_LOW],
+        levels[LabToolDeviceSpec::ANALOG_IN_CAL_MIDDLE],
+        levels[LabToolDeviceSpec::ANALOG_IN_CAL_HIGH],
+        (int)(1000.0 * a0[LabToolDeviceSpec::ANALOG_IN_CAL_LOW]),
+        (int)(1000.0 * a0[LabToolDeviceSpec::ANALOG_IN_CAL_MIDDLE]),
+        (int)(1000.0 * a0[LabToolDeviceSpec::ANALOG_IN_CAL_HIGH]),
+        (int)(1000.0 * a1[LabToolDeviceSpec::ANALOG_IN_CAL_LOW]),
+        (int)(1000.0 * a1[LabToolDeviceSpec::ANALOG_IN_CAL_MIDDLE]),
+        (int)(1000.0 * a1[LabToolDeviceSpec::ANALOG_IN_CAL_HIGH]),
     };
 
     LabToolDeviceTransfer* ddt = new LabToolDeviceTransfer(this);

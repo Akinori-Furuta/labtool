@@ -19,6 +19,7 @@
 #include <QObject>
 #include <QList>
 
+#include "labtool/labtooldevice.h"
 #include "device.h"
 
 class DeviceManager : public QObject

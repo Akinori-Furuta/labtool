@@ -101,6 +101,7 @@ HEADERS += \
     device/simulator/simulatordevice.h \
     device/labtool/labtoolcapturedevice.h \
     device/labtool/labtooldevice.h \
+    device/labtool/labtooldevicespec.h \
     generator/uidigitalgenerator.h \
     generator/uianaloggenerator.h \
     device/simulator/simulatorgeneratordevice.h \
