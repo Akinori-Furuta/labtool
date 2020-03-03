@@ -64,7 +64,7 @@ endif
 
 CPU = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard
 CC_FLAGS = $(CPU) -c -Os -fno-common -fmessage-length=0 -Wall -fno-exceptions -ffunction-sections -fdata-sections 
-CC_SYMBOLS = -DCORE_M4 -DUSE_SPIFI_LIB -D__LPC43XX__ -DUSB_DEVICE_ONLY
+CC_SYMBOLS = -DCORE_M4 -DUSE_FPU -DUSE_SPIFI_LIB -D__LPC43XX__ -DUSB_DEVICE_ONLY
 
 LD_FLAGS = -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -Wl,--gc-sections --specs=nano.specs
 LD_SYS_LIBS = -lc -lgcc -lnosys
