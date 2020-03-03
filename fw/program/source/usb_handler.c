@@ -136,7 +136,7 @@ static uint8_t data_buff[DATA_MAX_LEN];
 static callbacks_t callbacks;
 
 // Samples to send back to PC
-static sample_data_t samples = {CMD_STATUS_ERR,NULL,0,0};
+static sample_data_t samples = {CMD_STATUS_ERR, {0, 0, 0, 0, 0, NULL, NULL}};
 static Bool haveSamplesToSend = FALSE;
 
 // Calibration result to send back to PC
