@@ -149,8 +149,10 @@ static dac_setup_t channels[MAX_SUPPORTED_CHANNELS] = {
 /*! TRUE if the generator has been configured and is ready to start */
 static Bool validConfiguration = FALSE;
 
+#if (ENABLE_LOGGING == OPT_ENABLED)
 /*! String representation of the GEN_DAC_CFG_WAVE_* defines in generator_dac.h */
 static const char* const WAVEFORMS[6] = { "Sinus", "Square", "Triangular", "Sawtooth", "Inv Sawtooth", "Level" };
+#endif /* (ENABLE_LOGGING == OPT_ENABLED) */
 
 /******************************************************************************
  * Forward Declarations of Local Functions
