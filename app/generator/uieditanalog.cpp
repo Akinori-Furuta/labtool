@@ -121,6 +121,18 @@ QComboBox* UiEditAnalog::createWaveformBox(
                 box->addItem("Triangle",
                              QVariant(AnalogSignal::WaveformTriangle));
                 break;
+            case AnalogSignal::WaveformSawTooth:
+                box->addItem("Saw Tooth",
+                             QVariant(AnalogSignal::WaveformSawTooth));
+                break;
+            case AnalogSignal::WaveformInvSawTooth:
+                box->addItem("Inv Saw Tooth",
+                             QVariant(AnalogSignal::WaveformInvSawTooth));
+                break;
+            case AnalogSignal::WaveformLevel:
+                box->addItem("Level",
+                             QVariant(AnalogSignal::WaveformLevel));
+                break;
             default:
                 break;
             }

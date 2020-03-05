@@ -51,6 +51,9 @@ public:
         WaveformSine,
         WaveformSquare,
         WaveformTriangle,
+        WaveformSawTooth,
+        WaveformInvSawTooth,
+        WaveformLevel, /* Constant DC */
         WaveformNum // must be last
     };
 

@@ -80,6 +80,15 @@ void UiAnalogShape::paintEvent(QPaintEvent *event)
     case AnalogSignal::WaveformTriangle:
         paintTriangle(&painter, w, h);
         break;
+    case AnalogSignal::WaveformSawTooth:
+        paintSawTooth(&painter, w, h);
+        break;
+    case AnalogSignal::WaveformInvSawTooth:
+        paintInvSawTooth(&painter, w, h);
+        break;
+    case AnalogSignal::WaveformLevel:
+        paintLevel(&painter, w, h);
+        break;
     default:
         break;
     }
@@ -187,6 +196,70 @@ void UiAnalogShape::paintTriangle(QPainter* painter, int w, int h)
     painter->drawLine(0, h/2, w/4, 0);
     painter->drawLine(w/4, 0, 3*w/4, h);
     painter->drawLine(3*w/4, h, w, h/2);
+
+    painter->restore();
+}
+
+/*!
+    Paint a saw-tooth analog waveform.
+*/
+void UiAnalogShape::paintSawTooth(QPainter* painter, int w, int h)
+{
+
+    painter->save();
+
+    painter->setRenderHint(QPainter::Antialiasing);
+
+    QPen pen = painter->pen();
+    pen.setWidth(2);
+    pen.setColor(Qt::blue);
+    painter->setPen(pen);
+
+    painter->drawLine(0, 0, 0, h);
+    painter->drawLine(0, h, w, 0);
+    painter->drawLine(w, 0, w, h);
+
+    painter->restore();
+}
+
+/*!
+    Paint a inverted saw-tooth analog waveform.
+*/
+void UiAnalogShape::paintInvSawTooth(QPainter* painter, int w, int h)
+{
+
+    painter->save();
+
+    painter->setRenderHint(QPainter::Antialiasing);
+
+    QPen pen = painter->pen();
+    pen.setWidth(2);
+    pen.setColor(Qt::blue);
+    painter->setPen(pen);
+
+    painter->drawLine(0, h, 0, 0);
+    painter->drawLine(0, 0, w, h);
+    painter->drawLine(w, h, w, 0);
+
+    painter->restore();
+}
+
+/*!
+    Paint a level (DC) analog waveform.
+*/
+void UiAnalogShape::paintLevel(QPainter* painter, int w, int h)
+{
+
+    painter->save();
+
+    painter->setRenderHint(QPainter::Antialiasing);
+
+    QPen pen = painter->pen();
+    pen.setWidth(2);
+    pen.setColor(Qt::blue);
+    painter->setPen(pen);
+
+    painter->drawLine(0, h/4, w, h/4);
 
     painter->restore();
 }

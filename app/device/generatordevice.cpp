@@ -124,7 +124,10 @@ QList<AnalogSignal::AnalogWaveform> GeneratorDevice::supportedAnalogWaveforms()
     return QList<AnalogSignal::AnalogWaveform>()
             << AnalogSignal::WaveformSine
             << AnalogSignal::WaveformSquare
-            << AnalogSignal::WaveformTriangle;
+            << AnalogSignal::WaveformTriangle
+            << AnalogSignal::WaveformSawTooth
+            << AnalogSignal::WaveformInvSawTooth
+            << AnalogSignal::WaveformLevel;
 }
 
 /*!

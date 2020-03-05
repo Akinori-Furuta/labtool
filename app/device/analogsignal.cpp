@@ -89,6 +89,15 @@
 
     \var AnalogSignal::AnalogWaveform AnalogSignal::WaveformTriangle
     Generate a triangle waveform.
+
+    \var AnalogSignal::AnalogWaveform AnalogSignal::WaveformSawTooth
+    Generate a Saw-Tooth waveform.
+
+    \var AnalogSignal::AnalogWaveform AnalogSignal::WaveformInvSawTooth
+    Generate a Inverted Saw-Tooth waveform.
+
+    \var AnalogSignal::AnalogWaveform AnalogSignal::WaveformLevel
+    Generate a Level (DC) waveform.
 */
 
 

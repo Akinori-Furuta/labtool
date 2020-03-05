@@ -47,6 +47,9 @@ private:
     void paintSine(QPainter* painter, int w, int h);
     void paintSquare(QPainter* painter, int w, int h);
     void paintTriangle(QPainter* painter, int w, int h);
+    void paintSawTooth(QPainter* painter, int w, int h);
+    void paintInvSawTooth(QPainter* painter, int w, int h);
+    void paintLevel(QPainter* painter, int w, int h);
     
 };
 
