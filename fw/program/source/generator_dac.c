@@ -415,12 +415,15 @@ static cmd_status_t gen_dac_SetupLUT(const gen_dac_one_ch_cfg_t * const cfg, uin
   else if ((cfg->waveform == GEN_DAC_CFG_WAVE_SAWTOOTH) ||
            (cfg->waveform == GEN_DAC_CFG_WAVE_INV_SAWTOOTH))
   {
-    int mul = 1;
+    float amp_inv;
     if (cfg->waveform == GEN_DAC_CFG_WAVE_INV_SAWTOOTH)
     {
-      mul = -1;
+      amp_inv = -amplitude;
     }
-
+    else {
+      amp_inv = amplitude;
+    }
+    amp_inv *= 2.0f;
     /*
      * Based on http://en.wikipedia.org/wiki/Sawtooth_wave
      *
@@ -433,12 +436,11 @@ static cmd_status_t gen_dac_SetupLUT(const gen_dac_one_ch_cfg_t * const cfg, uin
      */
     for (i = 0; i < lutSize; i++)
     {
-      float t = i/((float)lutSize);
-      float a = 1.0f;
-      float x = 2.0f * (t/a - floorf(t/a + 0.5f));
+      float t = ((float)i) / ((float)lutSize);
+      float x = amp_inv * (t - floorf(t + 0.5f));
 
       // change amplitude, and correct if it is an inverse sawtooth
-      x = x * mul * amplitude;
+      x += dcOffset;
 
       // apply calibration
       val = (x - calib_a) / calib_b;
