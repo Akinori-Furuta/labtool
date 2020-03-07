@@ -47,7 +47,8 @@ void SimulatorGeneratorDevice::start(int digitalRate, bool loop)
     foreach(AnalogSignal* s, mAnalogSignalList) {
         qDebug() << "   " << s->id() << ": wave=" << s->waveform()
                  << " freq="<<s->frequency()
-                 << " amp="<<s->amplitude();
+                 << " amp="<<s->amplitude()
+                 << " ofs="<<s->dcOffset();
     }
 
     if (!loop) emit generateFinished(true, "");

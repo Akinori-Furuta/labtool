@@ -51,7 +51,7 @@ typedef struct
    */
   uint32_t waveform;
   uint32_t frequency; /*!< Frequency in Hz */
-  uint32_t amplitude; /*!< Amplitude in mV, 0..5000 */
+  int32_t  amplitude; /*!< Amplitude in mV, -5000..5000 */
   int32_t  dcOffset;  /*!< DC offset in mV, -5000..5000 */
 } gen_dac_one_ch_cfg_t;
 
@@ -338,10 +338,10 @@ void LabToolGeneratorDevice::updateAnalogConfigData()
         if (id < maxNumAnalogSignals()) {
             analog_header->available |= (1 << id);
 
-            analog_header->ch[id].amplitude = s->amplitude()*1000;
+            analog_header->ch[id].amplitude = s->amplitude()*1000.0;
             analog_header->ch[id].frequency = s->frequency();
             analog_header->ch[id].waveform = s->waveform();
-            analog_header->ch[id].dcOffset = 0; /*! \todo Add DC Offset to GUI */
+            analog_header->ch[id].dcOffset = s->dcOffset()*1000.0;
         }
     }
 }

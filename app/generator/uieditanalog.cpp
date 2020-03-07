@@ -66,6 +66,10 @@ UiEditAnalog::UiEditAnalog(AnalogSignal *signal, QWidget *parent) :
     mAmpBox->setValue(mSignal->amplitude());
     settingsLayout->addRow(tr("Amplitude:"), mAmpBox);
 
+    mDcOffsetBox = createDcOffsetBox();
+    mDcOffsetBox->setValue(mSignal->dcOffset());
+    settingsLayout->addRow(tr("DC Offset:"), mDcOffsetBox);
+
     layout->addLayout(settingsLayout);
     layout->addWidget(mShape);
 
@@ -183,8 +187,9 @@ QDoubleSpinBox* UiEditAnalog::createAmplitudeBox()
 
     // Deallocation: ownership changed when calling setLayout
     QDoubleSpinBox* box = new QDoubleSpinBox(this);
-    box->setMinimum(0);
-    box->setMaximum(device->maxAnalogAmplitude());
+    double amp = device->maxAnalogAmplitude();
+    box->setMinimum(-amp);
+    box->setMaximum(amp);
     box->setSingleStep(0.1);
     box->setSuffix(" V");
 
@@ -193,6 +198,29 @@ QDoubleSpinBox* UiEditAnalog::createAmplitudeBox()
 
     return box;
 }
+
+/*!
+    Creates and returns a box where the analog DC offset can be chosen.
+*/
+QDoubleSpinBox* UiEditAnalog::createDcOffsetBox()
+{
+    GeneratorDevice* device = DeviceManager::instance().activeDevice()
+            ->generatorDevice();
+
+    // Deallocation: ownership changed when calling setLayout
+    QDoubleSpinBox* box = new QDoubleSpinBox(this);
+    double amp = device->maxAnalogAmplitude();
+    box->setMinimum(-amp);
+    box->setMaximum(amp);
+    box->setSingleStep(0.1);
+    box->setSuffix(" V");
+
+    connect(box, SIGNAL(valueChanged(double)),
+            this, SLOT(dcOffsetChanged(double)));
+
+    return box;
+}
+
 
 /*!
     This function is called when the name of the signal is changed.
@@ -268,3 +296,12 @@ void UiEditAnalog::amplitudeChanged(double v)
 {
     mSignal->setAmplitude(v);
 }
+
+/*!
+    This function is called when the amplitude is changed.
+*/
+void UiEditAnalog::dcOffsetChanged(double v)
+{
+    mSignal->setDcOffset(v);
+}
+

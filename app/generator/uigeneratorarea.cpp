@@ -341,7 +341,10 @@ void UiGeneratorArea::openProject(QSettings &project)
             AnalogSignal tmp = AnalogSignal::fromSettingsString(meta);
             if (tmp.frequency() < device->minAnalogRate()
                     || tmp.frequency() > device->maxAnalogRate()) continue;
-            if (tmp.amplitude() > device->maxAnalogAmplitude()) continue;
+
+            double max_amp = device->maxAnalogAmplitude();
+            if ((tmp.amplitude() < -max_amp) || (tmp.amplitude() > max_amp)) continue;
+            if ((tmp.dcOffset() < -max_amp) ||  (tmp.dcOffset() > max_amp)) continue;
 
             AnalogSignal* signal = device->addAnalogSignal(tmp.id());
 

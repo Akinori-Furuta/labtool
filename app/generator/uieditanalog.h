@@ -45,17 +45,20 @@ private:
     QString mLastRateText;
     QComboBox* mWaveBox;
     QDoubleSpinBox* mAmpBox;
+    QDoubleSpinBox* mDcOffsetBox;
     UiAnalogShape* mShape;
 
     QComboBox* createWaveformBox(AnalogSignal::AnalogWaveform selected = AnalogSignal::WaveformSine);
     QLineEdit* createFrequencyBox();
     QDoubleSpinBox *createAmplitudeBox();
+    QDoubleSpinBox *createDcOffsetBox();
 
 private slots:
     void handleNameEdited();
     void updateRate();
     void changeWaveform(int selectedIdx);
     void amplitudeChanged(double v);
+    void dcOffsetChanged(double v);
     
 };
 

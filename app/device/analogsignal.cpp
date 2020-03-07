@@ -120,6 +120,7 @@ AnalogSignal::AnalogSignal()
     mFrequency = 10000;
     mWaveform  = AnalogSignal::WaveformSine;
     mAmplitude = 3;
+    mDcOffset = 0.0;
     mInvertSignal = 1.0;
 }
 
@@ -145,6 +146,7 @@ AnalogSignal::AnalogSignal(AnalogUsage usage, int id)
     mFrequency = 10000;
     mWaveform  = AnalogSignal::WaveformSine;
     mAmplitude = 3;
+    mDcOffset = 0.0;
     mInvertSignal = 1.0;
 }
 
@@ -163,6 +165,7 @@ bool AnalogSignal::operator==(const AnalogSignal &other)
             mFrequency == other.mFrequency &&
             mWaveform == other.mWaveform &&
             mAmplitude == other.mAmplitude &&
+            mDcOffset == other.mDcOffset &&
             mInvertSignal == mInvertSignal);
 
 }
@@ -190,6 +193,7 @@ AnalogSignal& AnalogSignal::operator=(const AnalogSignal &other)
     mFrequency = other.mFrequency;
     mWaveform = other.mWaveform;
     mAmplitude = other.mAmplitude;
+    mDcOffset = other.mDcOffset;
     mInvertSignal = other.mInvertSignal;
     mUsage = other.mUsage;
     mReconfigureListener = other.mReconfigureListener;
@@ -345,6 +349,18 @@ void AnalogSignal::setTriggerLevel(double l)
    Sets the amplitude for this signal to \a amp.
 */
 
+/*!
+    \fn double AnalogSignal::dcOffset() const
+
+   Returns the DC offset for this signal.
+*/
+
+/*!
+    \fn void AnalogSignal::setDcOffset(double offset)
+
+   Sets the DC offset for this signal to \a offset.
+*/
+
 
 /*!
     Returns a string representation of this analog signal. This is typically
@@ -361,7 +377,7 @@ QString AnalogSignal::toSettingsString()
     // vPerDiv;triggerState;triggerLevel;coupling
 
     // -- generate fields
-    // waveform;frequency;amplitude
+    // waveform;frequency;amplitude;dcOffset
 
 
     QString str;
@@ -380,7 +396,8 @@ QString AnalogSignal::toSettingsString()
     else {
         str.append(QString("%1;").arg(mWaveform));
         str.append(QString("%1;").arg(mFrequency));
-        str.append(QString("%1").arg(mAmplitude));
+        str.append(QString("%1;").arg(mAmplitude));
+        str.append(QString("%1").arg(mDcOffset));
     }
 
 
@@ -410,7 +427,7 @@ AnalogSignal AnalogSignal::fromSettingsString(QString& s)
         // vPerDiv;triggerState;triggerLevel;coupling;invertSignal
 
         // -- generate fields
-        // waveform;frequency;amplitude
+        // waveform;frequency;amplitude;dcOffset
 
         QStringList list = s.split(';');
         if (list.size() < 7) break;
@@ -495,12 +512,23 @@ AnalogSignal AnalogSignal::fromSettingsString(QString& s)
             double amp = list.at(6).toDouble(&ok);
             if (!ok) break;
 
+            double offset = 0;
+            if (list.size() >= 8) {
+                /* There is 8th (index==7) parameter, it's dcOffset. */
+                /* DC offset */
+                offset = list.at(7).toDouble(&ok);
+                if (!ok) {
+                    /* There is no offset, make it backward compatibility. */
+                    offset = 0;
+                }
+            }
             tmp.mUsage = usage;
             tmp.mId = id;
             tmp.mName = name;
             tmp.mWaveform = waveform;
             tmp.mFrequency = freq;
             tmp.mAmplitude = amp;
+            tmp.mDcOffset= offset;
         }
 
 

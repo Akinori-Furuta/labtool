@@ -92,6 +92,9 @@ public:
     double amplitude() const {return mAmplitude;}
     void setAmplitude(double amp) {mAmplitude = amp;}
 
+    double dcOffset() const {return mDcOffset;}
+    void setDcOffset(double offset) {mDcOffset = offset;}
+
     QString toSettingsString();
     static AnalogSignal fromSettingsString(QString& settings);
 
@@ -125,6 +128,7 @@ private:
     AnalogWaveform mWaveform;
     int mFrequency;
     double mAmplitude;
+    double mDcOffset;
     double mInvertSignal;
     
 };
