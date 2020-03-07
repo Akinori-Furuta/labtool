@@ -60,7 +60,7 @@ typedef struct
    */
   uint32_t waveform;
   uint32_t frequency; /*!< Frequency in Hz */
-  uint32_t amplitude; /*!< Amplitude in mV, 0..5000 */
+  int32_t  amplitude; /*!< Amplitude in mV, -5000..5000 */
   int32_t  dcOffset;  /*!< DC offset in mV, -5000..5000 */
 } gen_dac_one_ch_cfg_t;
 
