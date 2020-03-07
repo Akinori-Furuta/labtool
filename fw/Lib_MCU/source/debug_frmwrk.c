@@ -70,12 +70,19 @@ SSP_DATA_SETUP_Type *xferConfig;
  **********************************************************************/
 void UARTPutChar (LPC_USARTn_Type *UARTx, uint8_t ch)
 {
-  ITM_SendChar(ch);  
-// 	#if defined(HITEX_LCD_TERM)
-// 	//Write character to the LCD
-// 	WriteChar(ch, xferConfig, NoHighlight);
-// 	#endif
-// 	UART_Send(UARTx, &ch, 1, BLOCKING);
+#if defined(ITM_TERMINAL)
+    ITM_SendChar(ch);
+#else /* ITM_TERMINAL */
+#if defined(HITEX_LCD_TERM)
+    Write character to the LCD
+    WriteChar(ch, xferConfig, NoHighlight);
+#else /* defined(HITEX_LCD_TERM) */
+    /* (not ITM_TERMINAL) and (not HITEX_LCD_TERM)
+     * It should be UART port terminal.
+     */
+    UART_Send(UARTx, &ch, 1, BLOCKING);
+#endif /* defined(HITEX_LCD_TERM) */
+#endif /* defined(ITM_TERMINAL) */
 }
 
 
@@ -273,8 +280,13 @@ void debug_frmwrk_init_clk(uint32_t Clock_Speed)
 	/*
 	 * Initialize UART0 pin connect
 	 */
-	scu_pinmux(0xF ,10 , MD_PDN, FUNC1); 	// PF.10 : UART0_TXD
-	scu_pinmux(0xF ,11 , MD_PLN|MD_EZI|MD_ZI, FUNC1); 	// PF.11 : UART0_RXD
+	// scu_pinmux(0xF ,10 , MD_PDN, FUNC1); 	// PF.10 : UART0_TXD
+	// scu_pinmux(0xF ,11 , MD_PLN|MD_EZI|MD_ZI, FUNC1); 	// PF.11 : UART0_RXD
+
+	/* LPC Link2 with LabTool, Use P6_4:GPIO3_3:U0_TXD(F2):J9_22 and P6_5:GPIO3_4:U0_RXD(F2):J9_24 */
+	scu_pinmux(0x6, 4, MD_PLN, FUNC2); 	// P6_4 : UART0_TXD
+	scu_pinmux(0x6, 5, MD_PUP|MD_EZI|MD_ZI, FUNC2); 	// P6_5 : UART0_RXD
+
 #elif (USED_UART_DEBUG_PORT==1)
 	/*
 	 * Initialize UART1 pin connect

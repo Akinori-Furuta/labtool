@@ -90,8 +90,11 @@
  * in debug_frmwrk.c. The printouts are only available when debugging so this
  * option makes it possible to completely remove all printouts which saves
  * ROM and some RAM.
+ *
+ * Feed this macro from Makefile.
+ *
  */
-#define ENABLE_LOGGING               OPT_DISABLED
+// #define ENABLE_LOGGING               OPT_DISABLED
 
 /*! @brief Verify configuration before attempting to apply it.
  * There are some limitations to what the hardware can and can't do. By enabling
