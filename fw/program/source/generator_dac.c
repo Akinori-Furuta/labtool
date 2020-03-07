@@ -454,7 +454,7 @@ static cmd_status_t gen_dac_SetupLUT(const gen_dac_one_ch_cfg_t * const cfg, uin
     // Find actual amplitude, which for a level type is based on offset
 
     // apply calibration
-    val = (dcOffset - calib_a) / calib_b;
+    val = (dcOffset + amplitude - calib_a) / calib_b;
     val = SPI_DAC_CLIP_VALUE(val);
 
     dacSetup->LUT_BUFFER[0] = SPI_DAC_AB_CODE(ch, SPI_DAC_FORMAT_CODE(val));
