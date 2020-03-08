@@ -579,9 +579,23 @@ cmd_status_t gen_dac_Configure(const gen_dac_cfg_t * const cfg)
           break;
         }
 
-        if (((cfg->ch[i].dcOffset - ((int)cfg->ch[i].amplitude)) < MIN_AMPLITUDE) ||
-            ((cfg->ch[i].dcOffset + ((int)cfg->ch[i].amplitude)) > MAX_AMPLITUDE))
-        {
+        long offset = cfg->ch[i].dcOffset;
+        long amplitude = cfg->ch[i].amplitude;
+        long peakL;
+        long peakH;
+
+        peakL = offset - amplitude;
+        peakH = offset + amplitude;
+
+        if (peakL > peakH) {
+          long t;
+          t = peakL;
+          peakL = peakH;
+          peakH = t;
+        }
+
+        if ((peakL > MAX_AMPLITUDE) || (peakH < MIN_AMPLITUDE)) {
+          /* The wave will swings out of output range. */
           result = CMD_STATUS_ERR_GEN_INVALID_AMPLITUDE;
           break;
         }
