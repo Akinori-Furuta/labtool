@@ -470,7 +470,7 @@ static cmd_status_t gen_dac_SetupLUT(const gen_dac_one_ch_cfg_t * const cfg, uin
 //     log_i("%d\t%#x\t%d\r\n", i, dacSetup->LUT_BUFFER[i], ((dacSetup->LUT_BUFFER[i]>>2)&0x3ff));
 //     TIM_Waitms(3);
 //   }
-  log_i("LUT with %u entries for %dmV + %umV amplitude %s waveform\r\n", dacSetup->numLUTEntries, cfg->dcOffset, cfg->amplitude, WAVEFORMS[cfg->waveform]);
+  log_i("LUT with %u entries for %dmV + %dmV amplitude %s waveform\r\n", dacSetup->numLUTEntries, cfg->dcOffset, cfg->amplitude, WAVEFORMS[cfg->waveform]);
 
   return CMD_STATUS_OK;
 }
