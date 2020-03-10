@@ -458,6 +458,7 @@ static cmd_status_t gen_dac_SetupLUT(const gen_dac_one_ch_cfg_t * const cfg, uin
     val = SPI_DAC_CLIP_VALUE(val);
 
     dacSetup->LUT_BUFFER[0] = SPI_DAC_AB_CODE(ch, SPI_DAC_FORMAT_CODE(val));
+    log_i("Level output. ch=%d, offset=%d, amplitude=%d, val=%d\r\n", ch, cfg->dcOffset, cfg->amplitude, val);
   }
   else
   {
