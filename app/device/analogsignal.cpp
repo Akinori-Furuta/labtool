@@ -166,7 +166,7 @@ bool AnalogSignal::operator==(const AnalogSignal &other)
             mWaveform == other.mWaveform &&
             mAmplitude == other.mAmplitude &&
             mDcOffset == other.mDcOffset &&
-            mInvertSignal == mInvertSignal);
+            mInvertSignal == other.mInvertSignal);
 
 }
 
