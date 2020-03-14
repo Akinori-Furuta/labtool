@@ -98,6 +98,7 @@ typedef struct
 {
   /*! TRUE if this channel is in use */
   Bool enabled;
+  Bool retain;
 
   /*! Timer that the channel uses for DAC updates */
   LPC_TIMERn_Type* timer;
@@ -335,6 +336,7 @@ static cmd_status_t gen_dac_SetupLUT(const gen_dac_one_ch_cfg_t * const cfg, uin
 
   if (cfg->waveform == GEN_DAC_CFG_WAVE_SINUS)
   {
+    channels[ch].retain = FALSE;
     for (i = 0; i < lutSize; i++)
     {
       float deg = (i * 360.0f)/lutSize;
@@ -365,6 +367,7 @@ static cmd_status_t gen_dac_SetupLUT(const gen_dac_one_ch_cfg_t * const cfg, uin
      *   a = num periods (always 1)
      *   x = 0..1..0
      */
+    channels[ch].retain = FALSE;
     for (i = 0; i < lutSize; i++)
     {
       float t = i/((float)lutSize);
@@ -387,6 +390,7 @@ static cmd_status_t gen_dac_SetupLUT(const gen_dac_one_ch_cfg_t * const cfg, uin
     float tmp = (dcOffset + amplitude);
     uint16_t dac_reg;
 
+    channels[ch].retain = FALSE;
     // apply calibration
     val = (tmp - calib_a) / calib_b;
     val = SPI_DAC_CLIP_VALUE(val);
@@ -416,6 +420,8 @@ static cmd_status_t gen_dac_SetupLUT(const gen_dac_one_ch_cfg_t * const cfg, uin
            (cfg->waveform == GEN_DAC_CFG_WAVE_INV_SAWTOOTH))
   {
     float amp_inv;
+
+    channels[ch].retain = FALSE;
     if (cfg->waveform == GEN_DAC_CFG_WAVE_INV_SAWTOOTH)
     {
       amp_inv = -amplitude;
@@ -451,8 +457,9 @@ static cmd_status_t gen_dac_SetupLUT(const gen_dac_one_ch_cfg_t * const cfg, uin
   }
   else if (cfg->waveform == GEN_DAC_CFG_WAVE_LEVEL)
   {
-    // Find actual amplitude, which for a level type is based on offset
+    channels[ch].retain = FALSE;
 
+    // Find actual amplitude, which for a level type is based on offset
     // apply calibration
     val = (dcOffset + amplitude - calib_a) / calib_b;
     val = SPI_DAC_CLIP_VALUE(val);
@@ -680,6 +687,29 @@ cmd_status_t gen_dac_Start(void)
   return CMD_STATUS_OK;
 }
 
+void gen_dac_SetOutput(int ch, float target_v)
+{
+  float calib_a;
+  float calib_b;
+  int   val;
+
+  calib_a = channels[ch].calib_a;
+  calib_b = channels[ch].calib_b;
+
+  val = (target_v - calib_a) / calib_b;
+  val = SPI_DAC_CLIP_VALUE(val);
+  spi_dac_write(SPI_DAC_AB_CODE(ch, SPI_DAC_FORMAT_CODE(val)));
+}
+
+void gen_dac_SetOutput0V(void)
+{
+  int i;
+  for (i = 0; i < MAX_SUPPORTED_CHANNELS; i++)
+  {
+    gen_dac_SetOutput(i, 0.0f);
+  }
+}
+
 /**************************************************************************//**
  *
  * @brief  Disarms (stops) the signal generation.
@@ -694,6 +724,10 @@ void gen_dac_Stop(void)
     TIM_Cmd(channels[i].timer, DISABLE);
     TIM_ClearIntPending(channels[i].timer, TIM_MR1_INT);
   }
-
-  spi_dac_stop();
+  for (i = 0; i < MAX_SUPPORTED_CHANNELS; i++)
+  {
+    if (channels[i].retain == FALSE) {
+      gen_dac_SetOutput(i, 0.0f);
+    }
+  }
 }

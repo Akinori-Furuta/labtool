@@ -83,6 +83,8 @@ typedef struct
 void gen_dac_Init(void);
 cmd_status_t gen_dac_Configure(const gen_dac_cfg_t * const cfg);
 cmd_status_t gen_dac_Start(void);
+void gen_dac_SetOutput(int ch, float target_v);
+void gen_dac_SetOutput0V(void);
 void gen_dac_Stop(void);
 
 #endif /* end __GENERATOR_DAC_H */

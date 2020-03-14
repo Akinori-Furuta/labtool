@@ -436,7 +436,7 @@ int main (void)
 
   /* Make sure calibration data is loaded (or at least set to defaults) */
   calibrate_Init();
-  generator_Stop();
+  generator_AnalogInit();
 
   statemachine_Init();
 

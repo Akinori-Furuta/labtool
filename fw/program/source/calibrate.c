@@ -895,14 +895,56 @@ const calib_result_t* calibrate_GetActiveCalibrationData(void)
  *****************************************************************************/
 void calibrate_GetFactorsForDAC(int ch, float* a, float* b)
 {
-  float vOutL = calibrationResult.userOut[ch][ANALOG_IN_CAL_LOW];  // low level
-  float vOutH = calibrationResult.userOut[ch][ANALOG_IN_CAL_HIGH]; // high level
-  float hexL = calibrationResult.dacValOut[ANALOG_IN_CAL_LOW];     //256; // -2.5V
-  float hexH = calibrationResult.dacValOut[ANALOG_IN_CAL_HIGH];    //768; // +2.5V
-  float r;
 
-  r = (vOutH - vOutL) / (hexH - hexL); /* mV / DACin */
+#if (ENABLE_LOGGING == OPT_ENABLED)
+  static const char invalidCal[]="Invalid calibrate parameter. r=(%d - %d) / (%d - %d)\r\n";
+#endif /* (ENABLE_LOGGING == OPT_ENABLED) */
+  int vOutL = calibrationResult.userOut[ch][ANALOG_IN_CAL_LOW];  // low level
+  int vOutH = calibrationResult.userOut[ch][ANALOG_IN_CAL_HIGH]; // high level
+  int hexL = calibrationResult.dacValOut[ANALOG_IN_CAL_LOW];     //256; // -2.5V
+  int hexH = calibrationResult.dacValOut[ANALOG_IN_CAL_HIGH];    //768; // +2.5V
+  int vOutDelta;
+  int hexDelta;
+  float r;
+  float o;
+
+  vOutDelta = vOutH - vOutL;
+  hexDelta = hexH - hexL;
+
+  if ((vOutL < ANALOG_OUT_LO_MIN_MV) ||
+      (vOutL > ANALOG_OUT_LO_MAX_MV) ||
+      (vOutH < ANALOG_OUT_HI_MIN_MV) ||
+      (vOutH > ANALOG_OUT_HI_MAX_MV) ||
+      (hexDelta <= 1)
+   ) {
+    /* Invalid calibration parameters, fix parameters to default. */
+    log_i(invalidCal, vOutH, vOutL, hexH, hexL);
+    vOutL = ANALOG_OUT_LO_MV;
+    vOutH = ANALOG_OUT_HI_MV;
+    hexL = ANALOG_OUT_LO_DAC;
+    hexH = ANALOG_OUT_HI_DAC;
+    vOutDelta = vOutH - vOutL;
+    hexDelta = hexH - hexL;
+  }
+  r = ((float)vOutDelta) / ((float)hexDelta); /* mV / DACin */
   /* Calculate factors and scale mV to V. */
-  *a = (vOutL - (r * hexL)) / 1000.0f ; /* The output voltage at DACin=0. */
+  o = ((float)vOutL) - (r * ((float)hexL));
+  if ((r < ANALOG_OUT_DMV_MIN_DC) ||
+      (r > ANALOG_OUT_DMV_MAX_DC) ||
+      (o > ANALOG_OUT_LO_MAX_MV)  ||
+      (o < ANALOG_OUT_HI_MIN_MV)
+  ) {
+    log_i(invalidCal, vOutH, vOutL, hexH, hexL);
+    vOutL = ANALOG_OUT_LO_MV;
+    vOutH = ANALOG_OUT_HI_MV;
+    hexL = ANALOG_OUT_LO_DAC;
+    hexH = ANALOG_OUT_HI_DAC;
+    vOutDelta = vOutH - vOutL;
+    hexDelta = hexH - hexL;
+    r = ((float)vOutDelta) / ((float)hexDelta); /* mV / DACin */
+    /* Calculate factors and scale mV to V. */
+    o = ((float)vOutL) - (r * ((float)hexL));
+  }
+  *a = o / 1000.0f; /* The output voltage at DACin=0. */
   *b = r / 1000.0f;
 }

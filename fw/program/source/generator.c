@@ -246,20 +246,32 @@ static void generator_SetInitialRate(void)
  * @brief  Initializes generation of both analog and digital signals.
  *
  *****************************************************************************/
+void generator_AnalogInit(void)
+{
+  DAC_GenerationEnabled = FALSE;
+  gen_dac_Init();
+  gen_dac_SetOutput0V();
+}
+
+/**************************************************************************//**
+ *
+ * @brief  Initializes generation of both analog and digital signals.
+ *
+ *****************************************************************************/
 void generator_Init(void)
 {
   generator_SetInitialRate();
 
-  DAC_GenerationEnabled = FALSE;
   SGPIO_GenerationEnabled = FALSE;
 
   /*! @todo Move the controls for the DIO direction to a central place as it will prevent any signal capture */
+  /* Set Digital Generator output direction to LPC4370 to outside. */
   LPC_GPIO_PORT->SET[1] |= (1UL <<  8);
   LPC_GPIO_PORT->CLR[0] |= (1UL << 14);
   LPC_GPIO_PORT->SET[1] |= (1UL << 11);
 
   gen_sgpio_Init();
-  gen_dac_Init();
+  generator_AnalogInit();
 }
 
 /**************************************************************************//**

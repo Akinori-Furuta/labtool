@@ -40,6 +40,7 @@
  * Functions
  *****************************************************************************/
 
+void generator_AnalogInit(void);
 void generator_Init(void);
 cmd_status_t generator_Configure(uint8_t* cfg, uint32_t size);
 cmd_status_t generator_Start(void);
