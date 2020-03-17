@@ -113,7 +113,7 @@ private:
     void infoWidthChanged();
     void doLayout();
     void disableSignal(int idx);
-
+    static int VoltLog10(double v);
 
     friend class UiAnalogSignalPrivate;
 };

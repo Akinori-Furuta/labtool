@@ -1200,6 +1200,29 @@ void UiAnalogSignal::paintSignalValue(QPainter* painter, double time)
 {
     qreal ix = -1;
 
+    typedef enum {     /* Log10() */
+        SI_1mV =    0, /*      -3 */
+        SI_10mV =   1, /*      -2 */
+        SI_100mV =  2, /*      -1 */
+        SI_1V    =  3, /*       0 */
+        SI_10V   =  4, /*       1 */
+        SI_NUMS  =  5,
+    } ScaleIndex;
+
+    typedef struct {
+        double     mag;
+        int        precision;
+        const char *unit;
+    } ScaleTable;
+
+    ScaleTable  VoltScale[SI_NUMS] = {
+        {1000.0, 3, "mV"}  /*   1mV/DIV */,
+        {1000.0, 2, "mV"}  /*  10mV/DIV */,
+        {1000.0, 1, "mV"}  /* 100mV/DIV */,
+        {   1.0, 3, "V"}   /*    1V/DIV */,
+        {   1.0, 2, "V"}   /*   10V/DIV */,
+    };
+
     QList<double> level;
     QList<double> pk;
 
@@ -1225,11 +1248,15 @@ void UiAnalogSignal::paintSignalValue(QPainter* painter, double time)
 
         if (intersect[i].x() != -1) {
             double inv = p->mSignal->invertSignal();
-            double yPx = inv*(mNumPxPerDiv/p->mSignal->vPerDiv())
+            double vPerDiv = p->mSignal->vPerDiv();
+            double yPx = inv*(mNumPxPerDiv/vPerDiv)
                     *(-intersect[i].y()) + p->mGndPos;
+            ScaleTable *sEntry = &(VoltScale[VoltLog10(vPerDiv) + SI_1V]);
 
             QString voltageLevel =
-                    QString::number(intersect[i].y(), 'f', 2) + " V" + (inv < 0.0 ? " (inv)" : "");
+                    QString::number(intersect[i].y() * sEntry->mag, 'f', sEntry->precision)
+                      + " " + sEntry->unit
+                      + (inv < 0.0 ? " (inv)" : "");
 
             QPen pen = painter->pen();
             pen.setColor(Configuration::instance().textColor());
@@ -1245,6 +1272,28 @@ void UiAnalogSignal::paintSignalValue(QPainter* painter, double time)
     }
 
     emit measurmentChanged(level, pk, true);
+}
+
+int UiAnalogSignal::VoltLog10(double v)
+{   if (v < 0.0) {
+        v = -v;
+    }
+    if (v >= 1.0) {
+        if (v >= 10.0) {
+            return 1;
+        }
+        return 0;
+    } else {
+        if (v >= 0.01) {
+           if (v >= 0.1) {
+               return -1;
+           }
+           return -2;
+        } else {
+           return -3;
+        }
+    }
+    /* Not come here. */
 }
 
 /*!
