@@ -517,13 +517,16 @@ void calibrate_Stop(void)
  *****************************************************************************/
 void calibrate_Feed(void)
 {
-  const int sleepStepMs = 1 /* ms */;
-  static int sleepTime = 0;
+  const int32_t sleepStepUs = 100 /* us */;
+  static int32_t sleepTimeUs = 0;
   uint16_t tmpA, tmpB;
 
   if (calibrationState == CALIB_STATE_AIN_SETUP_LOW)
   {
     int32_t targetOutputMv;
+
+    /* Prepare to measure by ADCHS. */
+    capture_Disarm();
 
     targetOutputMv = calibrationResult.voltsInLow[currentVdivIndex];
     tmpA = calibrate_12BitCalibratedDAC(0, targetOutputMv);
@@ -535,12 +538,15 @@ void calibrate_Feed(void)
     measuringLowLevel = TRUE;
 
     //TIM_Waitms(10);
-    sleepTime = 10;
+    sleepTimeUs = 10 * (int32_t)1000;
     calibrationState = CALIB_STATE_SLEEP;
   }
   else if (calibrationState == CALIB_STATE_AIN_SETUP_HIGH)
   {
     int32_t targetOutputMv;
+
+    /* Prepare to measure by ADCHS. */
+    capture_Disarm();
 
     targetOutputMv = calibrationResult.voltsInHigh[currentVdivIndex];
     tmpA = calibrate_12BitCalibratedDAC(0, targetOutputMv);
@@ -551,7 +557,7 @@ void calibrate_Feed(void)
 
     measuringLowLevel = FALSE;
 
-    sleepTime = 10;
+    sleepTimeUs = 10 * (int32_t)1000;
     calibrationState = CALIB_STATE_SLEEP;
   }
 
@@ -570,7 +576,7 @@ void calibrate_Feed(void)
   }
   else if (calibrationState == CALIB_STATE_SLEEP)
   {
-    if (sleepTime <= 0)
+    if (sleepTimeUs <= 0)
     {
       calibrationState = CALIB_STATE_AIN_PROCESS;
       log_d("Waking up from sleep");
@@ -580,8 +586,8 @@ void calibrate_Feed(void)
       // This is not exact, but that is not needed. The important thing
       // is that a long sleep (ca 1 second) can be divided into small
       // chunks allowing USB polling at the same time
-      TIM_Waitms(sleepStepMs);
-      sleepTime -= sleepStepMs;
+      TIM_Waitus(sleepStepUs);
+      sleepTimeUs -= sleepStepUs;
     }
   }
   else if (calibrationState == CALIB_STATE_STOPPING)
