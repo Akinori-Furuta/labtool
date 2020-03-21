@@ -152,12 +152,16 @@ static inline uint8_t Endpoint_Read_8(void)
 	uint8_t tem;
 	if (endpointselected==ENDPOINT_CONTROLEP)
 		{
-		tem = usb_data_buffer[usb_data_buffer_index];
-		usb_data_buffer_index++;
+		long index;
+		index = usb_data_buffer_index;
+		tem = usb_data_buffer[index];
+		usb_data_buffer_index = index + 1;
 		usb_data_buffer_size--;
 		}else{
-		tem = usb_data_buffer_OUT[usb_data_buffer_OUT_index];
-		usb_data_buffer_OUT_index++;
+		long index;
+		index = usb_data_buffer_OUT_index;
+		tem = usb_data_buffer_OUT[index];
+		usb_data_buffer_OUT_index = index + 1;
 		usb_data_buffer_OUT_size--;
 		}
 	return tem;
