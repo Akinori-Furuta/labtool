@@ -104,6 +104,18 @@
 
 #define PREFILL_TIME_IN_MS  (100)
 
+#define VADC_CFG_CRS_20MSS  (0)  /*!< POWER_CONTROL.CRS = 0 */
+#define VADC_CFG_CRS_30MSS  (1)  /*!< POWER_CONTROL.CRS = 1 */
+#define VADC_CFG_CRS_50MSS  (2)  /*!< POWER_CONTROL.CRS = 2 */
+#define VADC_CFG_CRS_65MSS  (3)  /*!< POWER_CONTROL.CRS = 3 */
+#define VADC_CFG_CRS_80MSS  (4)  /*!< POWER_CONTROL.CRS = 4 */
+
+#define VADC_CFG_DGECi_20MSS  (0x00000000)  /*!< ADC_SPEED.DGECi = 0x0 dup 6 */
+#define VADC_CFG_DGECi_30MSS  (0x00000000)  /*!< ADC_SPEED.DGECi = 0x0 dup 6 */
+#define VADC_CFG_DGECi_50MSS  (0x00000000)  /*!< ADC_SPEED.DGECi = 0x0 dup 6 */
+#define VADC_CFG_DGECi_65MSS  (0x00ffffff)  /*!< ADC_SPEED.DGECi = 0xf dup 6 */
+#define VADC_CFG_DGECi_80MSS  (0x00eeeeee)  /*!< ADC_SPEED.DGECi = 0xe dup 6 */
+
 /*! @brief Active configuration for analog channel sampling */
 typedef struct
 {
@@ -1172,28 +1184,28 @@ cmd_status_t cap_vadc_Configure(circbuff_t* buff, cap_vadc_cfg_t* cfg, uint32_t 
     fADC = capture_GetFadc();
     if (fADC <= 20000000)
     {
-      activeCfg.crs = 0;
-      activeCfg.DGECi = 0;
+      activeCfg.crs =   VADC_CFG_CRS_20MSS;
+      activeCfg.DGECi = VADC_CFG_DGECi_20MSS;
     }
     else if (fADC <= 30000000)
     {
-      activeCfg.crs = 1;
-      activeCfg.DGECi = 0;
+      activeCfg.crs =   VADC_CFG_CRS_30MSS;
+      activeCfg.DGECi = VADC_CFG_DGECi_30MSS;
     }
     else if (fADC <= 50000000)
     {
-      activeCfg.crs = 2;
-      activeCfg.DGECi = 0;
+      activeCfg.crs =   VADC_CFG_CRS_50MSS;
+      activeCfg.DGECi = VADC_CFG_DGECi_50MSS;
     }
     else if (fADC <= 65000000)
     {
-      activeCfg.crs = 3;
-      activeCfg.DGECi = 0xFFFFFF;
+      activeCfg.crs =   VADC_CFG_CRS_65MSS;
+      activeCfg.DGECi = VADC_CFG_DGECi_65MSS;
     }
     else if (fADC <= 80000000)
     {
-      activeCfg.crs = 4;
-      activeCfg.DGECi = 0xEEEEEE;
+      activeCfg.crs =   VADC_CFG_CRS_80MSS;
+      activeCfg.DGECi = VADC_CFG_DGECi_80MSS;
     }
     else
     {
