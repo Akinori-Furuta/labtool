@@ -1476,7 +1476,7 @@ void usb_handler_Run(void)
       log_i("-------> generator stopped\r\n");
     }
     else if (calibrationState != CALIB_STATE_STOPPED)
-    {
+    { /* Doing calibration process. */
       // Done with a calibration step, send the result
       if (haveCalibrationResultToSend)
       {
