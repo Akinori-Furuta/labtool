@@ -725,9 +725,9 @@ uint32_t CGU_SetPLL0audio(void){
                       | _BIT(4);   /* CLKEN */
 #endif
     /* wait for lock */
-    while (!(LPC_CGU->PLL0AUDIO_STAT & 1)); 
-     
-	return CGU_ERROR_SUCCESS;
+    while (!(LPC_CGU->PLL0AUDIO_STAT & 1)) {/* Do nothing. */};
+
+    return CGU_ERROR_SUCCESS;
 }
 
 
