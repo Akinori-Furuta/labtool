@@ -80,11 +80,13 @@ void circbuff_Init(circbuff_t* pBuff, uint32_t addr, uint32_t size)
   pBuff->last    = 0;
   pBuff->empty   = TRUE;
 
+#if (defined(DEBUG_CIRCBUFF_PAINT_MARK))
   /* To help troubleshooting the entire buffer is filled to see what is
      actually copied and what is leftovers. */
   //memset(pBuff->data, 0x00, 0x10000);
 //  memset((uint8_t*)0x20000000, 0x00, 0x10000);
   memset(pBuff->data, 0xea, size);
+#endif /* (defined(DEBUG_CIRCBUFF_PAINT_MARK)) */
 }
 
 /**************************************************************************//**
@@ -112,11 +114,13 @@ void circbuff_Reset(circbuff_t* pBuff)
   pBuff->last  = 0;
   pBuff->empty = TRUE;
 
+#if (defined(DEBUG_CIRCBUFF_PAINT_MARK))
   /* To help troubleshooting the entire buffer is filled to see what is
      actually copied and what is leftovers. */
   //memset(pBuff->data, 0x00, 0x10000);
 //  memset((uint8_t*)0x20000000, 0x00, 0x10000);
   memset(pBuff->data, 0xea, pBuff->size);
+#endif /* (defined(DEBUG_CIRCBUFF_PAINT_MARK)) */
 }
 
 /**************************************************************************//**
