@@ -986,7 +986,7 @@ static cmd_status_t VADC_CalculatePreAndPostFill(uint32_t postFill)
  * @retval CMD_STATUS_ERR_INVALID_VDIV   If the level is invalid
  *
  *****************************************************************************/
-static cmd_status_t VADC_SetupVoltsPerDiv(const cap_vadc_cfg_t* const cfg)
+static cmd_status_t VADC_SetupVoltsPerDiv(const cap_vadc_cfg_t* const cfg, Bool *update)
 {
   static uint32_t lastValue = 0x100;
   static uint32_t lastCh    = 0;
@@ -995,6 +995,8 @@ static cmd_status_t VADC_SetupVoltsPerDiv(const cap_vadc_cfg_t* const cfg)
   {
     uint32_t val = 0;
     int ch;
+
+    *update = TRUE;
     for (ch = 0; ch < 2; ch++)
     {
       if (cfg->enabledChannels & (1<<ch))
@@ -1036,13 +1038,15 @@ static cmd_status_t VADC_SetupVoltsPerDiv(const cap_vadc_cfg_t* const cfg)
  * @retval CMD_STATUS_ERR_*   If the setting failed
  *
  *****************************************************************************/
-static cmd_status_t VADC_SetupCoupling(const cap_vadc_cfg_t* const cfg)
+static cmd_status_t VADC_SetupCoupling(const cap_vadc_cfg_t* const cfg, Bool *update)
 {
   static uint32_t lastValue = 0x100; // any invalid value will do
 
   if (lastValue != cfg->couplings)
   {
     uint32_t val = 0;
+
+    *update = TRUE;
     if (cfg->couplings & 1)
     {
       val |= CTRL_CH1_AC_DC;
@@ -1144,8 +1148,10 @@ cmd_status_t cap_vadc_Configure(circbuff_t* buff, cap_vadc_cfg_t* cfg, uint32_t 
   pSampleBuffer = buff;
   activeCfg.valid = FALSE;
   activeCfg.forcedTrigger = forceTrigger;
+  Bool update;
 
   memcpy(&activeCfg.from_client, cfg, sizeof(cap_vadc_cfg_t));
+  update = FALSE;
 
   do
   {
@@ -1160,13 +1166,13 @@ cmd_status_t cap_vadc_Configure(circbuff_t* buff, cap_vadc_cfg_t* cfg, uint32_t 
        currently selected sample rate. */
     activeCfg.matchValue = capture_GetVadcMatchValue()/activeCfg.numEnabledChannels - 1;
 
-    result = VADC_SetupVoltsPerDiv(cfg);
+    result = VADC_SetupVoltsPerDiv(cfg, &update);
     if (result != CMD_STATUS_OK)
     {
       break;
     }
 
-    result = VADC_SetupCoupling(cfg);
+    result = VADC_SetupCoupling(cfg, &update);
     if (result != CMD_STATUS_OK)
     {
       break;
@@ -1243,7 +1249,9 @@ cmd_status_t cap_vadc_Configure(circbuff_t* buff, cap_vadc_cfg_t* cfg, uint32_t 
 
     // Delay to make sure that the SPI controlled V/div and coupling settings
     // have time to reach the correct levels
-    TIM_Waitms(100);
+    if (update) {
+      TIM_Waitms(100);
+    }
 
   } while (0);
 
