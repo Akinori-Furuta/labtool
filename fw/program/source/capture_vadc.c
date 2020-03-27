@@ -1221,7 +1221,7 @@ cmd_status_t cap_vadc_Configure(circbuff_t* buff, cap_vadc_cfg_t* cfg, uint32_t 
       break;
     }
 
-    //log_i("fADC = %dHz, crs = %d, DGECi = %#x\r\n", fADC, activeCfg.crs, activeCfg.DGECi);
+    log_i("fADC = %dHz, crs = %d, DGECi = %#x\r\n", fADC, activeCfg.crs, activeCfg.DGECi);
 
 
     // Configure the circular buffer data for use by the interrupt handler
