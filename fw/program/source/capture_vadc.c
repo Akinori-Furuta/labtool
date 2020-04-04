@@ -626,6 +626,7 @@ static void VADC_SetupTriggerInterrupt(int ch, uint32_t triggerType)
 static void VADC_Init(void)
 {
   uint32_t tmp;
+  uint32_t nr_level;
   uint32_t thr_ch_1 = 0;
   uint32_t thr_ch_2 = 0;
 
@@ -708,9 +709,10 @@ static void VADC_Init(void)
     if (NOISE_REDUCTION_ENABLED(activeCfg.from_client.noiseReduction))
     {
       noiseReductionEnabled = 1;
+      nr_level = NOISE_REDUCTION_LEVEL(activeCfg.from_client.noiseReduction);
       LPC_VADC->THR_A =
-        ((tmp - NOISE_REDUCTION_LEVEL(activeCfg.from_client.noiseReduction))<<0) |   /* THR_LOW_A:        Low compare threashold register A, default 0x000 */
-        ((tmp + NOISE_REDUCTION_LEVEL(activeCfg.from_client.noiseReduction))<<16);   /* THR_HIGH_A:       High compare threashold register A, default 0xfff */
+        ((tmp - nr_level)<<0) |   /* THR_LOW_A:        Low compare threashold register A, default 0x000 */
+        ((tmp + nr_level)<<16);   /* THR_HIGH_A:       High compare threashold register A, default 0xfff */
     }
     else
     {
@@ -726,9 +728,10 @@ static void VADC_Init(void)
     if (NOISE_REDUCTION_ENABLED(activeCfg.from_client.noiseReduction))
     {
       noiseReductionEnabled = 1;
+      nr_level = NOISE_REDUCTION_LEVEL(activeCfg.from_client.noiseReduction);
       LPC_VADC->THR_B =
-        ((tmp - NOISE_REDUCTION_LEVEL(activeCfg.from_client.noiseReduction))<<0) |   /* THR_LOW_B:        Low compare threashold register A, default 0x000 */
-        ((tmp + NOISE_REDUCTION_LEVEL(activeCfg.from_client.noiseReduction))<<16);   /* THR_HIGH_B:       High compare threashold register A, default 0xfff */
+        ((tmp - nr_level)<<0) |   /* THR_LOW_B:        Low compare threashold register A, default 0x000 */
+        ((tmp + nr_level)<<16);   /* THR_HIGH_B:       High compare threashold register A, default 0xfff */
     }
     else
     {
@@ -1095,8 +1098,10 @@ static cmd_status_t VADC_ValidateTriggerLevels(cap_vadc_cfg_t* cfg)
       }
       else if (NOISE_REDUCTION_ENABLED(cfg->noiseReduction))
       {
-        if ((trigLvl < (NOISE_REDUCTION_LEVEL(cfg->noiseReduction) + TRIG_MIN_VALUE)) ||
-            ((trigLvl + NOISE_REDUCTION_LEVEL(cfg->noiseReduction)) > TRIG_MAX_VALUE))
+        uint32_t nr_level;
+        nr_level = NOISE_REDUCTION_LEVEL(cfg->noiseReduction);
+        if ((trigLvl < (nr_level + TRIG_MIN_VALUE)) ||
+            ((trigLvl + nr_level) > TRIG_MAX_VALUE))
         {
           return CMD_STATUS_ERR_NOISE_REDUCTION_LEVEL_TOO_HIGH;
         }
