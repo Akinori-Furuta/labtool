@@ -137,11 +137,13 @@ typedef struct
 static dac_setup_t channels[MAX_SUPPORTED_CHANNELS] = {
   {
     .enabled = FALSE,
+    .retain = FALSE,
     .timer = LPC_TIMER1,
     .timerIRQ = TIMER1_IRQn,
   },
   {
     .enabled = FALSE,
+    .retain = FALSE,
     .timer = LPC_TIMER3,
     .timerIRQ = TIMER3_IRQn,
   },
