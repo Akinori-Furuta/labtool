@@ -36,6 +36,12 @@
  * Typedefs and defines
  *****************************************************************************/
 
+/*! @brief Maximum size of a received block (bulk OUT packet) of data
+ * @see LabTool_ReadData
+ * @todo Remove 512 byte limitation of received data?
+ */
+#define USB_BULK_OUT_MAX_LEN  (512)
+
 /*! @brief Container holding all information for a completed signal sampling. */
 typedef struct
 {

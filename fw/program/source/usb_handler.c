@@ -46,12 +46,6 @@
 
 #define CMD_MAX_LEN     4
 
-/*! @brief Maximum size of a received block of data
- * @see LabTool_ReadData
- * @todo Remove 512 byte limitation of received data?
- */
-#define DATA_MAX_LEN  512
-
 #define HEADER_IDX_SIZE_LSB  0
 #define HEADER_IDX_SIZE_MSB  1
 #define HEADER_IDX_CMD       2
@@ -59,7 +53,7 @@
 
 #define CMD_SIZE(__buff)      (*((uint16_t*)(__buff)))
 #define CMD_IS_VALID(__buff)  (((__buff)[HEADER_IDX_PREFIX])==0xea)
-#define CMD_HAS_DATA(__buff)  (CMD_IS_VALID(__buff) && (CMD_SIZE(__buff) > 0) && (CMD_SIZE(__buff) <= DATA_MAX_LEN))
+#define CMD_HAS_DATA(__buff)  (CMD_IS_VALID(__buff) && (CMD_SIZE(__buff) > 0) && (CMD_SIZE(__buff) <= USB_BULK_OUT_MAX_LEN))
 
 /*! @brief Callbacks used when client requests are received.
  * @see LabTool_ProcessCommand
@@ -131,7 +125,7 @@ extern volatile uint32_t mstick;
  *****************************************************************************/
 
 static uint8_t cmd_buff[CMD_MAX_LEN];
-static uint8_t data_buff[DATA_MAX_LEN];
+static uint8_t data_buff[USB_BULK_OUT_MAX_LEN];
 
 static callbacks_t callbacks;
 
@@ -235,7 +229,7 @@ static Bool LabTool_ReadData(uint8_t* pBuff, uint16_t size)
 {
   int retry = 500;
 
-  if (size > DATA_MAX_LEN)
+  if (size > USB_BULK_OUT_MAX_LEN)
   {
     return FALSE;
   }
