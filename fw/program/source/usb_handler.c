@@ -227,7 +227,7 @@ static Bool LabTool_ReadCommand(uint8_t* pCmd, uint16_t* pSize)
  *****************************************************************************/
 static Bool LabTool_ReadData(uint8_t* pBuff, uint16_t size)
 {
-  int retry = 500;
+  int retry = 500 * 1000;
 
   if (size > USB_BULK_OUT_MAX_LEN)
   {
@@ -241,7 +241,7 @@ static Bool LabTool_ReadData(uint8_t* pBuff, uint16_t size)
       Endpoint_ClearOUT();
       return TRUE;
     }
-    TIM_Waitms(10);
+    TIM_Waitus(10);
   } while (--retry > 0);
 
   return FALSE;
