@@ -363,7 +363,24 @@ cmd_status_t calibrate_AnalogOut(uint8_t* cfg, uint32_t size)
       break;
     }
 
-    calibrationState = CALIB_STATE_AOUT;
+    switch (calibrationState) {
+    default:
+      calibrationState = CALIB_STATE_AOUT_FIRST;
+
+      /* Once stop ADCHS. */
+      capture_Disarm();
+      /* Start ADCHS to drop VDDA voltage. */
+      cmd_status_t res = capture_ConfigureForCalibration(ANALOG_IN_RANGES - 1, NUM_ENABLED_VADC_SHORT_SHOT);
+      if (res != CMD_STATUS_OK) {
+        log_d("Can not start ADCHS.");
+      }
+      break;
+    case CALIB_STATE_AOUT_FIRST:
+    case CALIB_STATE_AOUT_AGAIN:
+      /* Now Running ADCHS. */
+      calibrationState = CALIB_STATE_AOUT_AGAIN;
+      break;
+    }
 
     log_d("Setting level to 0x%03x", params->level);
 
@@ -563,7 +580,7 @@ void calibrate_Feed(void)
 
   else if (calibrationState == CALIB_STATE_AIN_PROCESS)
   {
-    cmd_status_t res = capture_ConfigureForCalibration(currentVdivIndex);
+    cmd_status_t res = capture_ConfigureForCalibration(currentVdivIndex, NUM_ENABLED_VADC_CALIBRATE);
     if (res == CMD_STATUS_OK)
     {
       calibrationState = CALIB_STATE_AIN_WAIT;
@@ -593,6 +610,9 @@ void calibrate_Feed(void)
   else if (calibrationState == CALIB_STATE_STOPPING)
   {
     // The usb_handler have had enough time to send the result/error now
+    /* Stop running ADCHS. */
+    capture_Disarm();
+
     calibrationState = CALIB_STATE_STOPPED;
   }
 }
@@ -620,6 +640,24 @@ void calibrate_ProcessResult(cmd_status_t status, circbuff_t* buff)
     // aborting
     usb_handler_SignalFailedCalibration(status);
     return;
+  }
+  switch (calibrationState) {
+  case CALIB_STATE_AOUT_FIRST:
+  case CALIB_STATE_AOUT_AGAIN:
+    /* Calibrating AOUT_0 and AOUT_1, user measures output terminal
+     * by external equipment. Run the VADC(ADCHS) to drop VDDA (Analog
+     * power line) voltage as capturing analog input. The VADC(ADCHS)
+     * power consumption affects the VDDA power line voltage. The VDDA
+     * power line voltage affects the DAC(generator) output AOUT_0 and AOUT_1.
+     * Now the VADC(ADCHS) stops sampling, but still consumes power from
+     * VDDA power line.
+     */
+    /* Waste captured results, do nothing with captured datum. */
+    /* Keep state. */
+    return;
+   default:
+    /* Do nothing, and continue process. */
+    break;
   }
 
   memset(stats, 0, sizeof(stats));

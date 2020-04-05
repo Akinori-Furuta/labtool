@@ -40,7 +40,8 @@
 #include "generator_sgpio.h"
 #include "usb_handler.h"
 #include "statemachine.h"
-
+#include "capture.h"
+#include "calibrate.h"
 
 /******************************************************************************
  * Typedefs and defines
@@ -328,7 +329,11 @@ cmd_status_t generator_Start(void)
  *****************************************************************************/
 cmd_status_t generator_Stop(void)
 {
+  /* Stop VADC(ADCHS). */
+  capture_Disarm();
+  /* Stop digital signal generator. */
   gen_sgpio_Stop();
+  /* Stop DAC (periodic interrupt and set output to 0V). */
   gen_dac_Stop();
   return CMD_STATUS_OK;
 }
@@ -363,6 +368,11 @@ cmd_status_t generator_Configure(uint8_t* cfg, uint32_t size)
     // Make sure all generators have stopped. This ensures that if a previously
     // enabled generator is not enabled anymore it will be stopped.
     generator_Stop();
+
+    /* Initialize capture VADC(ADCHS). */
+    capture_Init();
+    /* Activate the VADC(ADCHS), To drop the VDDA power line voltage. */
+    capture_ConfigureForCalibration(ANALOG_IN_RANGES - 1, NUM_ENABLED_VADC_SHORT_SHOT);
 
     if (gen_cfg->available & GEN_CFG_SGPIO_AVAILABLE)
     {

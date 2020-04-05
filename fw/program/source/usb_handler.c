@@ -1463,49 +1463,77 @@ void usb_handler_Run(void)
       stopCaptureRequested = FALSE;
       log_i("-------> capture stopped\r\n");
     }
-    else if (stopGeneratorRequested)
+    else
     {
-      callbacks.genStop();
-      stopGeneratorRequested = FALSE;
-      log_i("-------> generator stopped\r\n");
-    }
-    else if (calibrationState != CALIB_STATE_STOPPED)
-    { /* Doing calibration process. */
-      // Done with a calibration step, send the result
-      if (haveCalibrationResultToSend)
+      if (stopGeneratorRequested)
       {
-        LabTool_SendCalibrationResult();
+        callbacks.genStop();
+        stopGeneratorRequested = FALSE;
+        log_i("-------> generator stopped\r\n");
       }
-
-      // A VADC sampling has finished, calculate calibration data based on it
-      else if (haveSamplesToSend)
-      {
-        calibrate_ProcessResult(samples.status, samples.cap.vadc_samples);
-        haveSamplesToSend = FALSE;
-      }
-
-      // Waiting for something to happen
       else
       {
-        calibrate_Feed();
-      }
-    }
-    else if (haveSamplesToSend)
-    {
-      LED_TRIG_ON();
-      LED_ARM_OFF();
-
+        if (calibrationState != CALIB_STATE_STOPPED)
+        {
+          /* Doing calibration process. */
+          if (haveCalibrationResultToSend)
+          {
+            // Done with a calibration step, send the result
+            LabTool_SendCalibrationResult();
+          }
+          else
+          {
+            if (haveSamplesToSend)
+            {
+              /* A VADC sampling has finished, waste or calculate
+               * calibration data based on it
+               */
+              calibrate_ProcessResult(samples.status, samples.cap.vadc_samples);
+              haveSamplesToSend = FALSE;
+            }
+            else
+            { // Waiting for something to happen
+              calibrate_Feed();
+            }
+          }
+        }
+        else
+        {
+          /* Idling, Capturing, or Generating. */
+          if (haveSamplesToSend)
+          {
+            /* VADC(ADCHS) finished sampling. */
+            if (capture_WillWaste())
+            {
+              /* Simply waste captured datum. */
+              LED_ARM_OFF();
+              haveSamplesToSend = FALSE;
+            }
+            else
+            {
+              /* Host requests capturing. */
+              /* Note. LEX_TRIG_x() do nothing. */
+              LED_TRIG_ON();
+              /* Turn off the ARM LED, see capture_Arm().
+               * Note. LED_ARM_x() do nothing.
+               */
+              LED_ARM_OFF();
 #if (FIND_SKIPPED_SAMPLES == OPT_ENABLED)
-      LabTool_FindSkippedSamples();
+              LabTool_FindSkippedSamples();
 #endif
 #if (PRINT_ANALOG_HISTOGRAM == OPT_ENABLED)
-      LabTool_CreateHistogram();
+              LabTool_CreateHistogram();
 #endif
 #if (PRINT_STATISTICS == OPT_ENABLED)
-      LabTool_Stats();
+              LabTool_Stats();
 #endif
-      LabTool_SendSamples();
-      LED_TRIG_OFF();
+              LabTool_SendSamples();
+              /*! @note SendSampes clears haveSamplesToSend */
+              LED_TRIG_OFF();
+            }
+          }
+        }
+      }
     }
     LabTool_ProcessCommand();
     USB_USBTask();

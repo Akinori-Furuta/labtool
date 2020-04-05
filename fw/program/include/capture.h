@@ -56,6 +56,31 @@
 /*! Tests if SGPIO has reached the prefill level. */
 #define CAP_PREFILL_IS_SGPIO_DONE()    (capture_PrefillComplete__  & 1)
 
+/*! The escape number to shot VADC (ADCHS) shortly.
+ *  Shot VADC(ADCHS) shortly to activate VADC (ADCHS) circuits and
+ *  peripheral circuits.
+ */
+#define NUM_ENABLED_VADC_SHORT_SHOT (3)
+
+/*! The escape number to calibrate VADC(ADCHS)
+ *  Capture samples to calibrate VADC(ADCHS)
+ *  peripheral circuits.
+ */
+#define NUM_ENABLED_VADC_CALIBRATE (4)
+
+/*! The actual number of VADC(ADCHS) channels to capture when
+ *  using shot shot escape.
+ */
+#define NUM_ENABLED_VADC_SS_ACTUAL  (2)
+
+/*! The actual number of VADC(ADCHS) channels to calibrate when
+ *  using calibrate.
+ */
+#define NUM_ENABLED_VADC_CA_ACTUAL  (2)
+
+/*! The number of samples when using short shot escape */
+#define VADC_SHORT_SHOT_SAMPLES     (4)
+
 /******************************************************************************
  * Global Variables
  *****************************************************************************/
@@ -73,7 +98,7 @@ void capture_Init(void);
 cmd_status_t capture_Configure(uint8_t* cfg, uint32_t size);
 cmd_status_t capture_Arm(void);
 cmd_status_t capture_Disarm(void);
-cmd_status_t capture_ConfigureForCalibration(int voltsPerDiv);
+cmd_status_t capture_ConfigureForCalibration(int voltsPerDiv, uint32_t vadc);
 
 uint16_t capture_GetVadcMatchValue(void);
 uint32_t capture_GetFadc(void);
@@ -84,6 +109,8 @@ void capture_ReportSGPIOSamplingFailed(cmd_status_t error);
 
 void capture_ReportVADCDone(circbuff_t* buff, uint32_t trigpoint, uint32_t triggerSample, uint32_t activeChannels);
 void capture_ReportVADCSamplingFailed(cmd_status_t error);
+
+Bool capture_WillWaste(void);
 
 #endif /* end __CAPTURE_H */
 

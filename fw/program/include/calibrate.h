@@ -80,7 +80,8 @@ typedef struct
 typedef enum
 {
   CALIB_STATE_STOPPED,        /*!< No calibration ongoing */
-  CALIB_STATE_AOUT,           /*!< Calibrating analog outputs */
+  CALIB_STATE_AOUT_FIRST,     /*!< Calibrating analog outputs, first request. */
+  CALIB_STATE_AOUT_AGAIN,     /*!< Calibrating analog outputs, request again. */
   CALIB_STATE_AIN_SETUP_LOW,  /*!< Setting up analog outputs to low level for analog input calibration */
   CALIB_STATE_AIN_SETUP_HIGH, /*!< Setting up analog outputs to high level for analog input calibration */
   CALIB_STATE_AIN_PROCESS,    /*!< Processing captured analog input samples looking for average levels */

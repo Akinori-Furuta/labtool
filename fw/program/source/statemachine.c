@@ -122,13 +122,6 @@ cmd_status_t statemachine_RequestState(states_t newState)
     return CMD_STATUS_OK;
   }
 
-  /* Special handling of STATE_CAPTURING while calibrating */
-  if ((currentState == STATE_CALIBRATING) && (newState == STATE_CAPTURING))
-  {
-    /* Let the capturing believe that the state has changed */
-    return CMD_STATUS_OK;
-  }
-
   /* Stop current activities */
   switch (currentState)
   {

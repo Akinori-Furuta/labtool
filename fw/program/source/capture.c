@@ -195,16 +195,34 @@ static const buffer_size_cfg_t BUFFERCONFIG[] =
   {   2,       11,         0x20003F40,       0x20004800 },
 };
 
-static circbuff_t sampleBufferSGPIO;
-static circbuff_t sampleBufferVADC;
-static int        enabledSgpioChannels = 0;
-static int        enabledVadcChannels = 0;
+/*! The purpose of capturing. */
+typedef enum {
+  CAPTURE_PURPOSE_HOST_REQUEST, /*!< Host Requests capture. */
+  CAPTURE_PURPOSE_SHORT_SHOT,   /*!< Short Shot capture, activate VADC(ADCHS) */
+  CAPTURE_PURPOSE_CALIBRATE,    /*!< Calibrate analog input. */
+} capture_purpose_t;
 
-static int currentSampleRateIdx = -1;
+typedef struct {
+  circbuff_t          sampleBufferSGPIO;
+  circbuff_t          sampleBufferVADC;
+  int                 enabledSgpioChannels;
+  int                 enabledVadcChannels;
+  int                 currentSampleRateIdx;
+  captured_samples_t  capturedSamples;
+  capture_cfg_t       calibrationSetup;
+  capture_purpose_t   purpose;
+} capture_state_t;
 
-static captured_samples_t capturedSamples;
-
-static capture_cfg_t calibrationSetup;
+static capture_state_t capState = {
+  .sampleBufferSGPIO = {},
+  .sampleBufferVADC = {},
+  .enabledSgpioChannels = 0,
+  .enabledVadcChannels = 0,
+  .currentSampleRateIdx = -1,
+  .capturedSamples = {},
+  .calibrationSetup = {},
+  .purpose = CAPTURE_PURPOSE_HOST_REQUEST,
+};
 
 /******************************************************************************
  * Forward Declarations of Local Functions
@@ -213,7 +231,6 @@ static capture_cfg_t calibrationSetup;
 /******************************************************************************
  * Global Functions
  *****************************************************************************/
-
 
 /******************************************************************************
  * Local Functions
@@ -234,11 +251,11 @@ static void capture_SetInitialSampleRate(void)
   CGU_Improved_SetPLL0audio(RATECONFIG[INITIAL_SAMPLE_RATE_IDX].pll0_msel,
                             RATECONFIG[INITIAL_SAMPLE_RATE_IDX].pll0_nsel,
                             RATECONFIG[INITIAL_SAMPLE_RATE_IDX].pll0_psel);
-  currentSampleRateIdx = INITIAL_SAMPLE_RATE_IDX;
+  capState.currentSampleRateIdx = INITIAL_SAMPLE_RATE_IDX;
 
   CGU_UpdateClock();
 
-  log_d("Set initial sample rate to %d", RATECONFIG[currentSampleRateIdx].sampleRate);
+  log_d("Set initial sample rate. sampleRate=%d, Idx=%d", RATECONFIG[capState.currentSampleRateIdx].sampleRate, capState.currentSampleRateIdx);
 }
 
 /**************************************************************************//**
@@ -289,7 +306,7 @@ static int capture_FindSampleRateIndex(uint32_t wantedRate, int numVADC)
 static cmd_status_t capture_SetSampleRate(uint32_t wantedRate, int numVADC)
 {
   static int lastNumVADC = -1;
-  uint32_t oldSampleRate = RATECONFIG[currentSampleRateIdx].sampleRate;
+  uint32_t oldSampleRate = RATECONFIG[capState.currentSampleRateIdx].sampleRate;
 
   if ((wantedRate != oldSampleRate) || (lastNumVADC != numVADC))
   {
@@ -312,7 +329,7 @@ static cmd_status_t capture_SetSampleRate(uint32_t wantedRate, int numVADC)
       CGU_Improved_SetPLL0audio(RATECONFIG[i].pll0_msel,
                                 RATECONFIG[i].pll0_nsel,
                                 RATECONFIG[i].pll0_psel);
-      currentSampleRateIdx = i;
+      capState.currentSampleRateIdx = i;
 
       CGU_UpdateClock();
 
@@ -354,17 +371,42 @@ static cmd_status_t capture_SetSampleRate(uint32_t wantedRate, int numVADC)
  *****************************************************************************/
 static cmd_status_t capture_ConfigureCaptureBuffers(const capture_cfg_t * const cap_cfg)
 {
-  if (cap_cfg->numEnabledVADC == 0)
+  uint32_t vadc;
+
+  vadc = cap_cfg->numEnabledVADC;
+  if (vadc == 0)
   {
     // Only digital capture
-    circbuff_Init(&sampleBufferSGPIO, 0x20000000, 0x10000);
+    circbuff_Init(&capState.sampleBufferSGPIO, 0x20000000, 0x10000);
+    return CMD_STATUS_OK;
   }
-  else if (cap_cfg->numEnabledSGPIO == 0)
+
+  switch (vadc)
+  {
+    case NUM_ENABLED_VADC_SHORT_SHOT:
+      /* Activate VADC(ADCHS). This escape number is
+       * used at Calibrating and Generating.
+       */
+      circbuff_Init(&capState.sampleBufferSGPIO, 0x20000000, sizeof(uint16_t) * VADC_SHORT_SHOT_SAMPLES);
+      return CMD_STATUS_OK;
+    case NUM_ENABLED_VADC_CALIBRATE:
+      /* Calibrate VADC(ADCHS). */
+      vadc = NUM_ENABLED_VADC_CA_ACTUAL;
+      break;
+    default:
+      break;
+  }
+
+  if (cap_cfg->numEnabledSGPIO == 0)
   {
     // Only analog capture
-    circbuff_Init(&sampleBufferVADC, 0x20000000, 0x10000);
+    circbuff_Init(&capState.sampleBufferVADC, 0x20000000, 0x10000);
+    return CMD_STATUS_OK;
   }
-  else
+  /* Do both Logic and Analog capture.
+     @note leave original indent and block.
+  */
+  /* ALWAYS DO BEGIN */
   {
     int i;
     int numDIO = -1;
@@ -384,20 +426,21 @@ static cmd_status_t capture_ConfigureCaptureBuffers(const capture_cfg_t * const 
     }
     for (i = 0; i < NUM_BUFFER_CONFIGURATIONS; i++)
     {
-      if ((BUFFERCONFIG[i].numVADC == cap_cfg->numEnabledVADC) &&
+      if ((BUFFERCONFIG[i].numVADC == vadc) &&
           (BUFFERCONFIG[i].numDIO == numDIO))
       {
         // When sampling both SGPIO and VADC at the same rate, VADC will
         // need sixteen times the memory.
         // It is important that VADC buffer ends at memory boundary 0x20010000
         // so a unused zone is added between the buffers.
-        circbuff_Init(&sampleBufferSGPIO, 0x20000000, BUFFERCONFIG[i].buffEndSGPIO - 0x20000000);
-        circbuff_Init(&sampleBufferVADC,  BUFFERCONFIG[i].buffStartVADC, 0x20010000 - BUFFERCONFIG[i].buffStartVADC);
+        circbuff_Init(&capState.sampleBufferSGPIO, 0x20000000, BUFFERCONFIG[i].buffEndSGPIO - 0x20000000);
+        circbuff_Init(&capState.sampleBufferVADC,  BUFFERCONFIG[i].buffStartVADC, 0x20010000 - BUFFERCONFIG[i].buffStartVADC);
         return CMD_STATUS_OK;
       }
     }
     return CMD_STATUS_ERR_CFG_INVALID_SIGNAL_COMBINATION;
   }
+  /* ALWAYS DO END */
 
   return CMD_STATUS_OK;
 }
@@ -416,6 +459,21 @@ static cmd_status_t capture_WeightedConfigCheck(const capture_cfg_t * const cap_
 {
 #if (DO_WEIGHTED_CONFIG_CHECK == OPT_ENABLED)
   cmd_status_t result = CMD_STATUS_ERR_CFG_INVALID_SIGNAL_COMBINATION;
+  uint32_t vadc;
+
+  vadc = cap_cfg->numEnabledVADC;
+  switch (vadc)
+  {
+    case NUM_ENABLED_VADC_SHORT_SHOT:
+      /* The number of VADC (ADCSH channels) is "short shot" escape number. */
+      vadc = NUM_ENABLED_VADC_SS_ACTUAL;
+      break;
+    case NUM_ENABLED_VADC_CALIBRATE:
+      /* The number of VADC (ADCSH channels) is "calibrate" escape number. */
+      vadc = NUM_ENABLED_VADC_CA_ACTUAL;
+    default:
+      break;
+  }
 
   do
   {
@@ -427,7 +485,7 @@ static cmd_status_t capture_WeightedConfigCheck(const capture_cfg_t * const cap_
       break;
     }
 
-    if (cap_cfg->numEnabledVADC == 0)
+    if (vadc == 0)
     {
       // Only digital capture
 
@@ -478,7 +536,7 @@ static cmd_status_t capture_WeightedConfigCheck(const capture_cfg_t * const cap_
         result = CMD_STATUS_ERR_UNSUPPORTED_SAMPLE_RATE;
         break;
       }
-      if ((cap_cfg->sampleRate > 30000000) && (cap_cfg->numEnabledVADC == 2))
+      if ((cap_cfg->sampleRate > 30000000) && (vadc >= 2))
       {
         // limit the sample rate to 30MHz when sampling both analog signals
         result = CMD_STATUS_ERR_UNSUPPORTED_SAMPLE_RATE;
@@ -522,12 +580,12 @@ void capture_Init(void)
   LED_ARM_OFF();
   LED_TRIG_OFF();
 
-  circbuff_Init(&sampleBufferSGPIO, 0x20000000, 0x10000);
-  circbuff_Init(&sampleBufferVADC, 0x20000000, 0x10000);
+  circbuff_Init(&capState.sampleBufferSGPIO, 0x20000000, 0x10000);
+  circbuff_Init(&capState.sampleBufferVADC, 0x20000000, 0x10000);
 
   capture_SetInitialSampleRate();
 
-  memset(&capturedSamples, 0, sizeof(captured_samples_t));
+  memset(&capState.capturedSamples, 0, sizeof(captured_samples_t));
 
   /*! @todo Move the controls for the DIO direction to a central place as it will prevent any signal generation */
   LPC_GPIO_PORT->CLR[1] |= (1UL <<  8);
@@ -555,30 +613,51 @@ cmd_status_t capture_Configure(uint8_t* cfg, uint32_t size)
   cmd_status_t result;
   Bool forcedTrigger = TRUE;
 
-  result = statemachine_RequestState(STATE_CAPTURING);
-  if (result != CMD_STATUS_OK)
+  uint32_t vadc;
+
+  vadc = cap_cfg->numEnabledVADC;
+  switch (vadc)
   {
-    return result;
+    case NUM_ENABLED_VADC_SHORT_SHOT:
+      /* The number of VADC (ADCSH channels) is "short shot" escape number. */
+      vadc = NUM_ENABLED_VADC_SS_ACTUAL;
+      capState.purpose = CAPTURE_PURPOSE_SHORT_SHOT;
+      /* Keep current state machine */
+      break;
+    case NUM_ENABLED_VADC_CALIBRATE:
+      /* The number of VADC (ADCSH channels) is "calibrate" escape number. */
+      vadc = NUM_ENABLED_VADC_CA_ACTUAL;
+      capState.purpose = CAPTURE_PURPOSE_CALIBRATE;
+      /* Keep current state machine */
+      break;
+    default:
+      /* Host Requests "capture". */
+      capState.purpose = CAPTURE_PURPOSE_HOST_REQUEST;
+      result = statemachine_RequestState(STATE_CAPTURING);
+      if (result != CMD_STATUS_OK)
+      {
+        return result;
+      }
   }
 
   LED_ARM_OFF();
   LED_TRIG_OFF();
 
   // disable all channels until configuration is done
-  enabledSgpioChannels = 0;
-  enabledVadcChannels = 0;
+  capState.enabledSgpioChannels = 0;
+  capState.enabledVadcChannels = 0;
 
   // if neither a digital nor a analog signal has been selected as trigger then
   // enter forced trigger mode (i.e. capture as much as the buffer can hold)
   if (((cap_cfg->numEnabledSGPIO > 0) && (cap_cfg->sgpio.enabledTriggers > 0)) ||
-      ((cap_cfg->numEnabledVADC > 0) && (cap_cfg->vadc.enabledTriggers > 0)))
+      ((vadc > 0) && (cap_cfg->vadc.enabledTriggers > 0)))
   {
     forcedTrigger = FALSE;
   }
 
   do
   {
-    if ((cap_cfg->numEnabledSGPIO == 0) && (cap_cfg->numEnabledVADC == 0))
+    if ((cap_cfg->numEnabledSGPIO == 0) && (vadc == 0))
     {
       // Must have at least one SGPIO or one VADC enabled
       result = CMD_STATUS_ERR_CFG_NO_CHANNELS_ENABLED;
@@ -591,7 +670,7 @@ cmd_status_t capture_Configure(uint8_t* cfg, uint32_t size)
       break;
     }
 
-    result = capture_SetSampleRate(cap_cfg->sampleRate, cap_cfg->numEnabledVADC);
+    result = capture_SetSampleRate(cap_cfg->sampleRate, vadc);
     if (result != CMD_STATUS_OK)
     {
       break;
@@ -605,24 +684,24 @@ cmd_status_t capture_Configure(uint8_t* cfg, uint32_t size)
 
     if (cap_cfg->numEnabledSGPIO > 0)
     {
-      result = cap_sgpio_Configure(&sampleBufferSGPIO, &cap_cfg->sgpio, cap_cfg->postFill, forcedTrigger, RATECONFIG[currentSampleRateIdx].counter);
+      result = cap_sgpio_Configure(&capState.sampleBufferSGPIO, &cap_cfg->sgpio, cap_cfg->postFill, forcedTrigger, RATECONFIG[capState.currentSampleRateIdx].counter);
       if (result != CMD_STATUS_OK)
       {
         break;
       }
     }
 
-    if (cap_cfg->numEnabledVADC > 0)
+    if (vadc > 0)
     {
-      result = cap_vadc_Configure(&sampleBufferVADC, &cap_cfg->vadc, cap_cfg->postFill, forcedTrigger);
+      result = cap_vadc_Configure(&capState.sampleBufferVADC, &cap_cfg->vadc, cap_cfg->postFill, forcedTrigger);
       if (result != CMD_STATUS_OK)
       {
         break;
       }
     }
 
-    enabledSgpioChannels = cap_cfg->numEnabledSGPIO;
-    enabledVadcChannels = cap_cfg->numEnabledVADC;
+    capState.enabledSgpioChannels = cap_cfg->numEnabledSGPIO;
+    capState.enabledVadcChannels = vadc;
 
   } while (FALSE);
 
@@ -641,21 +720,29 @@ cmd_status_t capture_Arm(void)
 {
   cmd_status_t result;
 
-  result = statemachine_RequestState(STATE_CAPTURING);
-  if (result != CMD_STATUS_OK)
+  switch (capState.purpose)
   {
-    return result;
+    case CAPTURE_PURPOSE_HOST_REQUEST:
+      /* "Host requests capturing".  */
+      result = statemachine_RequestState(STATE_CAPTURING);
+      if (result != CMD_STATUS_OK)
+      {
+        return result;
+      }
+      break;
+    default:
+      break;
   }
 
   LED_ARM_ON();
   LED_TRIG_OFF();
 
-  memset(&capturedSamples, 0, sizeof(captured_samples_t));
+  memset(&capState.capturedSamples, 0, sizeof(captured_samples_t));
 
   CAP_PREFILL_SET_AS_NEEDED();
 
   // Do 99% of preparations for SGPIO
-  if (enabledSgpioChannels > 0)
+  if (capState.enabledSgpioChannels > 0)
   {
     result = cap_sgpio_PrepareToArm();
     if (result != CMD_STATUS_OK)
@@ -669,7 +756,7 @@ cmd_status_t capture_Arm(void)
   }
 
   // Do 99% of preparations for VADC
-  if (enabledVadcChannels > 0)
+  if (capState.enabledVadcChannels > 0)
   {
     result = cap_vadc_PrepareToArm();
     if (result != CMD_STATUS_OK)
@@ -682,11 +769,11 @@ cmd_status_t capture_Arm(void)
     CAP_PREFILL_MARK_VADC_DONE();
   }
 
-  if (enabledSgpioChannels > 0)
+  if (capState.enabledSgpioChannels > 0)
   {
     cap_sgpio_Arm();
   }
-  if (enabledVadcChannels > 0)
+  if (capState.enabledVadcChannels > 0)
   {
     cap_vadc_Arm();
   }
@@ -707,11 +794,11 @@ cmd_status_t capture_Disarm(void)
   LED_ARM_OFF();
   LED_TRIG_OFF();
 
-  if (enabledSgpioChannels > 0)
+  if (capState.enabledSgpioChannels > 0)
   {
     cap_sgpio_Disarm();
   }
-  if (enabledVadcChannels > 0)
+  if (capState.enabledVadcChannels > 0)
   {
     cap_vadc_Disarm();
   }
@@ -727,7 +814,7 @@ cmd_status_t capture_Disarm(void)
  *****************************************************************************/
 uint16_t capture_GetVadcMatchValue(void)
 {
-  return RATECONFIG[currentSampleRateIdx].counter;
+  return RATECONFIG[capState.currentSampleRateIdx].counter;
 }
 
 /**************************************************************************//**
@@ -743,7 +830,7 @@ uint16_t capture_GetVadcMatchValue(void)
  *****************************************************************************/
 uint32_t capture_GetFadc(void)
 {
-  return RATECONFIG[currentSampleRateIdx].pll0_freq;
+  return RATECONFIG[capState.currentSampleRateIdx].pll0_freq;
 }
 
 /**************************************************************************//**
@@ -755,7 +842,7 @@ uint32_t capture_GetFadc(void)
  *****************************************************************************/
 uint32_t capture_GetSampleRate(void)
 {
-  return RATECONFIG[currentSampleRateIdx].sampleRate;
+  return RATECONFIG[capState.currentSampleRateIdx].sampleRate;
 }
 
 /**************************************************************************//**
@@ -769,14 +856,14 @@ uint32_t capture_GetSampleRate(void)
  *****************************************************************************/
 void capture_ReportSGPIODone(circbuff_t* buff, uint32_t trigpoint, uint32_t triggerSample, uint32_t activeChannels)
 {
-  capturedSamples.trigpoint |= trigpoint;
-  capturedSamples.sgpioTrigSample = triggerSample;
-  capturedSamples.sgpioActiveChannels = activeChannels;
-  capturedSamples.sgpio_samples = buff;
+  capState.capturedSamples.trigpoint |= trigpoint;
+  capState.capturedSamples.sgpioTrigSample = triggerSample;
+  capState.capturedSamples.sgpioActiveChannels = activeChannels;
+  capState.capturedSamples.sgpio_samples = buff;
 
-  if (enabledVadcChannels == 0 || capturedSamples.vadc_samples != NULL)
+  if (capState.enabledVadcChannels == 0 || capState.capturedSamples.vadc_samples != NULL)
   {
-    usb_handler_SendSamples(&capturedSamples);
+    usb_handler_SendSamples(&capState.capturedSamples);
   }
 }
 
@@ -792,7 +879,7 @@ void capture_ReportSGPIODone(circbuff_t* buff, uint32_t trigpoint, uint32_t trig
  *****************************************************************************/
 void capture_ReportSGPIOSamplingFailed(cmd_status_t error)
 {
-  if (enabledVadcChannels == 0)
+  if (capState.enabledVadcChannels == 0)
   {
     usb_handler_SignalFailedSampling(error);
   }
@@ -809,14 +896,14 @@ void capture_ReportSGPIOSamplingFailed(cmd_status_t error)
  *****************************************************************************/
 void capture_ReportVADCDone(circbuff_t* buff, uint32_t trigpoint, uint32_t triggerSample, uint32_t activeChannels)
 {
-  capturedSamples.trigpoint |= trigpoint<<16;
-  capturedSamples.vadcTrigSample = triggerSample;
-  capturedSamples.vadcActiveChannels = activeChannels;
-  capturedSamples.vadc_samples = buff;
+  capState.capturedSamples.trigpoint |= trigpoint<<16;
+  capState.capturedSamples.vadcTrigSample = triggerSample;
+  capState.capturedSamples.vadcActiveChannels = activeChannels;
+  capState.capturedSamples.vadc_samples = buff;
 
-  if (enabledSgpioChannels == 0 || capturedSamples.sgpio_samples != NULL)
+  if (capState.enabledSgpioChannels == 0 || capState.capturedSamples.sgpio_samples != NULL)
   {
-    usb_handler_SendSamples(&capturedSamples);
+    usb_handler_SendSamples(&capState.capturedSamples);
   }
 }
 
@@ -832,7 +919,7 @@ void capture_ReportVADCDone(circbuff_t* buff, uint32_t trigpoint, uint32_t trigg
  *****************************************************************************/
 void capture_ReportVADCSamplingFailed(cmd_status_t error)
 {
-  if (enabledSgpioChannels == 0)
+  if (capState.enabledSgpioChannels == 0)
   {
     usb_handler_SignalFailedSampling(error);
   }
@@ -846,30 +933,50 @@ void capture_ReportVADCSamplingFailed(cmd_status_t error)
  * a predetermined rate.
  *
  * @param [in] voltsPerDiv  The wanted Volts/div setting
+ * @param [in] vac The number of VADC channels to sample or "short shot" or \
+ *                 escape number NUM_ENABLED_VADC_SHORT_SHOT or \
+ *                 escape number NUM_ENABLED_VADC_CALIBRATE.
  *
  * @retval CMD_STATUS_OK      If successfully armed
  * @retval CMD_STATUS_ERR_*   If the capture could not be armed
  *
  *****************************************************************************/
-cmd_status_t capture_ConfigureForCalibration(int voltsPerDiv)
+cmd_status_t capture_ConfigureForCalibration(int voltsPerDiv, uint32_t vadc)
 {
   cmd_status_t result;
+  log_d("VpDiv=%d, vadc=%d", voltsPerDiv, vadc);
   uint32_t val = voltsPerDiv & 0x7;
-  calibrationSetup.numEnabledSGPIO = 0; // no digital signals enabled
-  calibrationSetup.numEnabledVADC = 2; // both analog channels enabled
-  calibrationSetup.sampleRate = 1000000;  // 1 MHz
-  calibrationSetup.postFill = 0x0fffff00 | 50; // 50% post fill, will be ignored
-  calibrationSetup.sgpio.enabledChannels = 0; // no digital signals enabled
-  calibrationSetup.vadc.enabledChannels = 3; // both analog channels enabled
-  calibrationSetup.vadc.enabledTriggers = 0; // want forced trigger
-  calibrationSetup.vadc.voltPerDiv =  val | (val<<4);
-  calibrationSetup.vadc.couplings = 0; // want DC coupling
-  calibrationSetup.vadc.noiseReduction = 0; // no noise reduction
+  capState.calibrationSetup.numEnabledSGPIO = 0; // no digital signals enabled
+  capState.calibrationSetup.numEnabledVADC = vadc; // both analog channels enabled or "short shot"
+  capState.calibrationSetup.sampleRate = 1000000;  // 1 MHz
+  capState.calibrationSetup.postFill = 0x0fffff00 | 100; // 100% post fill
+  capState.calibrationSetup.sgpio.enabledChannels = 0; // no digital signals enabled
+  capState.calibrationSetup.vadc.enabledChannels = 3; // both analog channels enabled
+  capState.calibrationSetup.vadc.enabledTriggers = 0; // want forced trigger
+  capState.calibrationSetup.vadc.voltPerDiv =  val | (val<<4);
+  capState.calibrationSetup.vadc.couplings = 0; // want DC coupling
+  capState.calibrationSetup.vadc.noiseReduction = 0; // no noise reduction
 
-  result = capture_Configure((uint8_t*)&calibrationSetup, sizeof(capture_cfg_t));
+  result = capture_Configure((uint8_t*)&capState.calibrationSetup, sizeof(capture_cfg_t));
   if (result == CMD_STATUS_OK)
   {
     result = capture_Arm();
   }
+  else
+  {
+    log_d("capture_Arm() failed. result=%d", (int)result);
+  }
   return result;
+}
+
+Bool capture_WillWaste(void)
+{
+  switch (capState.purpose)
+  {
+    case CAPTURE_PURPOSE_SHORT_SHOT:
+      return TRUE;
+    default:
+      return FALSE;
+  }
+  return FALSE;
 }
