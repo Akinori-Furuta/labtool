@@ -175,20 +175,25 @@ static const char* const WAVEFORMS[6] = { "Sinus", "Square", "Triangular", "Sawt
  *****************************************************************************/
 void TIMER1_IRQHandler(void)
 {
+  uint16_t idx;
+
   SET_MEAS_PIN_3();
 
   // Clear the pending interrupt (MR1 is bit 1)
   LPC_TIMER1->IR = (1<<1);
 
+  idx = channels[0].idxLUT;
+
   // Send the new value to the DAC
-  spi_dac_write(channels[0].LUT_BUFFER[channels[0].idxLUT]);
+  spi_dac_write(channels[0].LUT_BUFFER[idx]);
 
   // Find next value to send
-  channels[0].idxLUT++;
-  if (channels[0].idxLUT >= channels[0].numLUTEntries)
+  idx++;
+  if (idx >= channels[0].numLUTEntries)
   {
-    channels[0].idxLUT = 0;
+    idx = 0;
   }
+  channels[0].idxLUT = idx;
 
   CLR_MEAS_PIN_3();
 }
@@ -203,20 +208,25 @@ void TIMER1_IRQHandler(void)
  *****************************************************************************/
 void TIMER3_IRQHandler(void)
 {
+  uint16_t idx;
+
   SET_MEAS_PIN_3();
 
   // Clear the pending interrupt (MR1 is bit 1)
   LPC_TIMER3->IR = (1<<1);
 
+  idx = channels[1].idxLUT;
+
   // Send the new value to the DAC
-  spi_dac_write(channels[1].LUT_BUFFER[channels[1].idxLUT]);
+  spi_dac_write(channels[1].LUT_BUFFER[idx]);
 
   // Find next value to send
-  channels[1].idxLUT++;
-  if (channels[1].idxLUT >= channels[1].numLUTEntries)
+  idx++;
+  if (idx >= channels[1].numLUTEntries)
   {
-    channels[1].idxLUT = 0;
+    idx = 0;
   }
+  channels[1].idxLUT = idx;
 
   CLR_MEAS_PIN_3();
 }
