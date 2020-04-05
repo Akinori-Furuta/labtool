@@ -732,9 +732,11 @@ void gen_dac_Stop(void)
   int i;
   for (i = 0; i < MAX_SUPPORTED_CHANNELS; i++)
   {
+    LPC_TIMERn_Type *timer;
     NVIC_DisableIRQ(channels[i].timerIRQ);
-    TIM_Cmd(channels[i].timer, DISABLE);
-    TIM_ClearIntPending(channels[i].timer, TIM_MR1_INT);
+    timer = channels[i].timer;
+    TIM_Cmd(timer, DISABLE);
+    TIM_ClearIntPending(timer, TIM_MR1_INT);
   }
   for (i = 0; i < MAX_SUPPORTED_CHANNELS; i++)
   {
