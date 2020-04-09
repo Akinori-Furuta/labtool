@@ -111,6 +111,7 @@ void capture_ReportVADCDone(circbuff_t* buff, uint32_t trigpoint, uint32_t trigg
 void capture_ReportVADCSamplingFailed(cmd_status_t error);
 
 Bool capture_WillWaste(void);
+cmd_status_t capture_HotSandby(void);
 
 #endif /* end __CAPTURE_H */
 

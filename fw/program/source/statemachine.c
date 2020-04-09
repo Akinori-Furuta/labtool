@@ -126,6 +126,8 @@ cmd_status_t statemachine_RequestState(states_t newState)
   switch (currentState)
   {
     case STATE_INIT:
+      capture_HotSandby();
+      break;
     case STATE_IDLE:
       /* nothing started so there is nothing to stop... */
       break;

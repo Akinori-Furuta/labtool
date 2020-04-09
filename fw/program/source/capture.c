@@ -980,3 +980,17 @@ Bool capture_WillWaste(void)
   }
   return FALSE;
 }
+
+cmd_status_t capture_HotSandby(void)
+{
+  cmd_status_t result;
+
+  capture_Init();
+  capture_ConfigureForCalibration(ANALOG_IN_RANGES - 1, NUM_ENABLED_VADC_SHORT_SHOT);
+  result = capture_Configure((uint8_t*)&capState.calibrationSetup, sizeof(capture_cfg_t));
+  if (result == CMD_STATUS_OK)
+  {
+    result = capture_Arm();
+  }
+  return result;
+}
