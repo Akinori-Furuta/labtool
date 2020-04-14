@@ -197,10 +197,18 @@ static const buffer_size_cfg_t BUFFERCONFIG[] =
 
 /*! The purpose of capturing. */
 typedef enum {
+  CAPTURE_PURPOSE_NONE,         /*!< No purpose. */
   CAPTURE_PURPOSE_HOST_REQUEST, /*!< Host Requests capture. */
   CAPTURE_PURPOSE_SHORT_SHOT,   /*!< Short Shot capture, activate VADC(ADCHS) */
   CAPTURE_PURPOSE_CALIBRATE,    /*!< Calibrate analog input. */
 } capture_purpose_t;
+
+/*! Host requests what to capture. */
+typedef enum {
+  CAPTURE_HOST_DOES_NOTHING,    /*!< Host requests nothing. */
+  CAPTURE_HOST_DISARMED,        /*!< Host requests disarm. */
+  CAPTURE_HOST_ARMED,           /*!< Host requests arm. */
+} capture_host_request_t;
 
 typedef struct {
   circbuff_t          sampleBufferSGPIO;
@@ -210,7 +218,9 @@ typedef struct {
   int                 currentSampleRateIdx;
   captured_samples_t  capturedSamples;
   capture_cfg_t       calibrationSetup;
+  capture_cfg_t       captureSetup;
   capture_purpose_t   purpose;
+  capture_host_request_t hostRequest;
 } capture_state_t;
 
 static capture_state_t capState = {
@@ -221,7 +231,11 @@ static capture_state_t capState = {
   .currentSampleRateIdx = -1,
   .capturedSamples = {},
   .calibrationSetup = {},
-  .purpose = CAPTURE_PURPOSE_HOST_REQUEST,
+  .captureSetup = {
+    .sampleRate = 0,
+  },
+  .purpose = CAPTURE_PURPOSE_NONE,
+  .hostRequest = CAPTURE_HOST_DOES_NOTHING,
 };
 
 /******************************************************************************
@@ -632,6 +646,7 @@ cmd_status_t capture_Configure(uint8_t* cfg, uint32_t size)
       break;
     default:
       /* Host Requests "capture". */
+      capState.captureSetup = *cap_cfg; /* structure copy. */
       capState.purpose = CAPTURE_PURPOSE_HOST_REQUEST;
       result = statemachine_RequestState(STATE_CAPTURING);
       if (result != CMD_STATUS_OK)
@@ -781,6 +796,45 @@ cmd_status_t capture_Arm(void)
   return CMD_STATUS_OK;
 }
 
+cmd_status_t capture_Start(void)
+{  cmd_status_t result = CMD_STATUS_OK;
+   cmd_status_t resultSub;
+
+   if (capState.captureSetup.sampleRate == 0)
+   {  /* Host didn't configure capture or requested invalid sample rate. */
+      return CMD_STATUS_ERR_UNSUPPORTED_SAMPLE_RATE;
+   }
+
+   switch (capState.hostRequest)
+   {  case CAPTURE_HOST_DISARMED:
+        /* Host request start, recover configuration. */
+        resultSub = capture_Disarm();
+        if (resultSub != CMD_STATUS_OK)
+        {
+          result = resultSub;
+        }
+        capture_Init();
+        resultSub = capture_Configure((uint8_t*)&(capState.captureSetup), sizeof(capState.captureSetup));
+        if (resultSub != CMD_STATUS_OK)
+        {
+          result = resultSub;
+        }
+        break;
+      case CAPTURE_HOST_ARMED:
+        /* Host request start repeatedly. */
+        break;
+      default:
+        break;
+   }
+   capState.hostRequest = CAPTURE_HOST_ARMED;
+   resultSub = capture_Arm();
+   if (resultSub != CMD_STATUS_OK)
+   {
+     result = resultSub;
+   }
+   return result;
+}
+
 /**************************************************************************//**
  *
  * @brief  Disarms (stops) the signal capturing.
@@ -803,6 +857,41 @@ cmd_status_t capture_Disarm(void)
     cap_vadc_Disarm();
   }
   return CMD_STATUS_OK;
+}
+
+/**************************************************************************//**
+ *
+ * @brief  Disarms (stops) the signal capturing.
+ *
+ * @retval CMD_STATUS_OK      If successfully stopped, or alreay stopped
+ * @retval CMD_STATUS_ERR_*   If the capture could not be stopped
+ *
+ *****************************************************************************/
+cmd_status_t capture_Stop(void)
+{
+  cmd_status_t result = CMD_STATUS_OK;
+  cmd_status_t resultSub;
+
+  resultSub = capture_Disarm();
+  if (resultSub != CMD_STATUS_OK) {
+    result = resultSub;
+  }
+
+  switch (capState.hostRequest)
+  {  case CAPTURE_HOST_ARMED:
+       /* Host armed capture. */
+       capState.hostRequest = CAPTURE_HOST_DISARMED;
+       break;
+     default:
+       break;
+  }
+
+  resultSub = capture_HotSandby();
+  if (resultSub != CMD_STATUS_OK) {
+    result = resultSub;
+  }
+
+  return result;
 }
 
 /**************************************************************************//**
@@ -983,14 +1072,19 @@ Bool capture_WillWaste(void)
 
 cmd_status_t capture_HotSandby(void)
 {
-  cmd_status_t result;
+  cmd_status_t result = CMD_STATUS_OK;
+  cmd_status_t resultSub;
 
   capture_Init();
-  capture_ConfigureForCalibration(ANALOG_IN_RANGES - 1, NUM_ENABLED_VADC_SHORT_SHOT);
-  result = capture_Configure((uint8_t*)&capState.calibrationSetup, sizeof(capture_cfg_t));
-  if (result == CMD_STATUS_OK)
+  resultSub = capture_ConfigureForCalibration(ANALOG_IN_RANGES - 1, NUM_ENABLED_VADC_SHORT_SHOT);
+  if (resultSub != CMD_STATUS_OK)
   {
-    result = capture_Arm();
+    result = resultSub;
+  }
+  resultSub = capture_Arm();
+  if (resultSub != CMD_STATUS_OK)
+  {
+    result = resultSub;
   }
   return result;
 }

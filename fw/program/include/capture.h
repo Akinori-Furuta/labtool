@@ -97,7 +97,9 @@ void capture_Init(void);
 
 cmd_status_t capture_Configure(uint8_t* cfg, uint32_t size);
 cmd_status_t capture_Arm(void);
+cmd_status_t capture_Start(void);
 cmd_status_t capture_Disarm(void);
+cmd_status_t capture_Stop(void);
 cmd_status_t capture_ConfigureForCalibration(int voltsPerDiv, uint32_t vadc);
 
 uint16_t capture_GetVadcMatchValue(void);

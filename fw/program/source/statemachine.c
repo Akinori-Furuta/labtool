@@ -126,14 +126,13 @@ cmd_status_t statemachine_RequestState(states_t newState)
   switch (currentState)
   {
     case STATE_INIT:
-      capture_HotSandby();
       break;
+
     case STATE_IDLE:
-      /* nothing started so there is nothing to stop... */
       break;
 
     case STATE_CAPTURING:
-      result = capture_Disarm();
+      result = capture_Stop();
       break;
 
     case STATE_GENERATING:
@@ -156,7 +155,7 @@ cmd_status_t statemachine_RequestState(states_t newState)
     switch (newState)
     {
       case STATE_IDLE:
-        /* nothing to prepare... */
+        result = capture_HotSandby();
         break;
 
       case STATE_CAPTURING:

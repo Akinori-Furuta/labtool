@@ -440,7 +440,7 @@ int main (void)
 
   statemachine_Init();
 
-  usb_handler_InitUSB(capture_Disarm, capture_Configure, capture_Arm,
+  usb_handler_InitUSB(capture_Stop, capture_Configure, capture_Start,
                       generator_Stop, generator_Configure, generator_Start);
   statemachine_RequestState(STATE_IDLE);
   usb_handler_Run();
