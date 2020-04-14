@@ -796,6 +796,13 @@ cmd_status_t capture_Arm(void)
   return CMD_STATUS_OK;
 }
 
+/* @brief  Arms (starts) the signal capturing according to last configuration.
+ * Host request handler warapper.
+ *
+ * @retval CMD_STATUS_OK      If successfully armed
+ * @retval CMD_STATUS_ERR_*   If the capture could not be armed
+ */
+
 cmd_status_t capture_Start(void)
 {  cmd_status_t result = CMD_STATUS_OK;
    cmd_status_t resultSub;
@@ -859,14 +866,12 @@ cmd_status_t capture_Disarm(void)
   return CMD_STATUS_OK;
 }
 
-/**************************************************************************//**
- *
- * @brief  Disarms (stops) the signal capturing.
+/* @brief  Disarms (stops) the signal capturing.
+ * Host request handler wrapper.
  *
  * @retval CMD_STATUS_OK      If successfully stopped, or alreay stopped
  * @retval CMD_STATUS_ERR_*   If the capture could not be stopped
- *
- *****************************************************************************/
+ */
 cmd_status_t capture_Stop(void)
 {
   cmd_status_t result = CMD_STATUS_OK;
